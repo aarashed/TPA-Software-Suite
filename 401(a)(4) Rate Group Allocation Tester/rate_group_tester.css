@@ -98,6 +98,17 @@ h1 {
    border-radius: 3px;
    font-weight: bold;
    font-size: 0.9em;
+       /* 1. Allows long words (like an all-caps message) to break onto the next line */
+    word-break: break-word; 
+    
+    /* 2. Alternative/additional property for older browsers, forces line breaks */
+    word-wrap: break-word; 
+
+    /* 3. Ensure the text itself is constrained by its container's width */
+    width: 100%; 
+
+    /* Ensure the container is a block-level element to respect the width and wrapping */
+    display: block; 
 }
 
 .status-pass {
@@ -107,6 +118,17 @@ h1 {
    border-radius: 3px;
    font-weight: bold;
    font-size: 0.9em;
+       /* 1. Allows long words (like an all-caps message) to break onto the next line */
+    word-break: break-word; 
+    
+    /* 2. Alternative/additional property for older browsers, forces line breaks */
+    word-wrap: break-word; 
+
+    /* 3. Ensure the text itself is constrained by its container's width */
+    width: 100%; 
+
+    /* Ensure the container is a block-level element to respect the width and wrapping */
+    display: block; 
 }
 
 /* Button Styling (standard) */
