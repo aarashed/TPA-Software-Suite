@@ -3,9 +3,26 @@ function loadHome() {
    document.getElementById('tool-iframe').src = "dashboard_home.html";
    document.getElementById('breadcrumb-path').innerHTML = 'Dashboard Home';
 }
+//testing
 
+// New function to handle the main sidebar toggle
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const arrow = document.querySelector('.main-content-wrapper h2 .toggle-arrow');
+    
+    if (sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('hidden');
+        arrow.textContent = '▼'; // Open state
+    } else {
+        sidebar.classList.add('hidden');
+        arrow.textContent = '▶'; // Closed state
+    }
+}
 
 //testing
+
+
+
 function toggleLinks(header) {
    // 1. Find the sibling container that holds the links (either tool-links-container or sub-tool-links-container)
    const container = header.nextElementSibling;
@@ -17,11 +34,13 @@ function toggleLinks(header) {
    if (container.classList.contains('hidden')) {
        // If hidden, show it
        container.classList.remove('hidden');
+    
        // Update the arrow to the open state (down arrow)
        arrow.textContent = '▼';
    } else {
        // If visible, hide it
        container.classList.add('hidden');
+ 
        // Update the arrow to the closed state (right arrow)
        arrow.textContent = '▶';
    }

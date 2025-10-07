@@ -21,13 +21,19 @@
            </div>
            <div class="user-info">Welcome, Lead Analyst | Plan: XYZ Company</div>
        </header>
-       
 
-        <div class="main-content-wrapper">
-           
-           <aside class="sidebar-menu"> 
-               <h2>TPA Functional Modules</h2>
+        <div class="main-content-wrapper" >
+          <h2>
+                  <span class="toggle-arrow sidebar-toggle-arrow" onclick="toggleSidebar();" title="Click to Show/Hide Sidebar">▼</span>
+
+          </h2>
+    
+           <aside class="sidebar-menu" id="sidebar"> 
+            <h2> 
+                <span class="group-icon">🏠 </span>
+                <a href="#" onclick="window.parent.loadHome(); return false;">TPA Modules</a> 
                
+            </h2>
                <div class="module-grid-sidebar">
 
                    <div class="module-group">
@@ -73,7 +79,7 @@
                        </div>
                   </div>     
                 
-                   <div class="module-group">
+                <div class="module-group">
                        <h3 class="collapsible-header" onclick="updateBreadcrumb(this); toggleLinks(this);">
                            <span class="group-icon">📑</span> Data Integrity, Admin & Utilities
                            <span class="toggle-arrow">▼</span>
@@ -105,24 +111,19 @@
                                <a href="Secure 2.0 Tax Credit Estimator/secure2_credit.html" class="tool-link"onclick="loadTool(this); return false;"> 2.0 Tax Credit Estimator </a>
                                <a href="loan_withdrawal calculator/Loan_withdrawal.html" class="tool-link"onclick="loadTool(this); return false;"> Loan Withdrawal Calculator</a>
                                <a href="Max 401k Contribution Calculator/max_contribution.html" class="tool-link"onclick="loadTool(this); return false;"> Max 401k Contribution Calculator </a>
-                              <!-- <a href="gateway_calc.html" class="tool-link"onclick="loadTool(this); return false;"> Gateway Contribution Calculator </a>
-                               <a href="employer_match_calc.html" class="tool-link"onclick="loadTool(this); return false;"> Discretionary Match Calculator </a>
-                               <a href="key_hce_determination.html" class="tool-link"onclick="loadTool(this); return false;"> Key/HCE Determination Tool </a>
-                               <a href="allocation_formula_check.html" class="tool-link" onclick="loadTool(this); return false;"> Allocation Formula Checker </a>
-                               -->
                           </div>
                    </div>
                    
-                   </div>
+            </div>
+                
            </aside>
 
            <main class="content-area">
-               
-               <section class="breadcrumb-container">
+                <section class="breadcrumb-container" >
+                   
                    <span class="breadcrumb-label">Current Location:</span>
-                   <span id="breadcrumb-path">Dashboard Home</span>
-                    <p><a href="#" onclick="window.parent.loadHome(); return false;">Click here to reset Dashboard Home</a></p>
-               </section>
+                   <span id="breadcrumb-path">Dashboard Home</span> 
+                </section>
                
                <iframe id="tool-iframe" src="dashboard_home.html" frameborder="0"></iframe>
 

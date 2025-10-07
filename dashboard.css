@@ -83,6 +83,9 @@
 .tool-links-container.hidden {
    display: none; /* Crucial for hiding the sub-menu */
 }
+.sidebar-menu.hidden {
+   display: none;
+}
 
 /* Existing CSS for module-group h3 */
 .module-group h3 {
@@ -153,6 +156,10 @@
 }
 
 .tool-links-container.hidden {
+   display: none;
+}
+
+.sidebar-menu.hidden {
    display: none;
 }
 
