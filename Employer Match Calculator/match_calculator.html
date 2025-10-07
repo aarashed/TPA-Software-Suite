@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(k) Employer Match Calculator</title>
+   <link rel="stylesheet" href="match_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>401(k) Employer Match Calculator</h1>
+       <p class="description">Calculate the total amount of "free money" your employer contributes to your 401(k).</p>
+
+       <div class="card input-card">
+           <h2>Your Details & Match Formula</h2>
+           
+           <div class="input-group">
+               <label for="annualSalary">Your Annual Salary ($)</label>
+               <input type="number" id="annualSalary" value="75000" min="1">
+           </div>
+
+           <div class="input-group">
+               <label for="employeeContribution">Your Contribution Rate (%)</label>
+               <input type="number" id="employeeContribution" value="6" step="0.1" min="0" max="100">
+           </div>
+
+           <hr style="margin: 25px 0; border-color: #eee;">
+
+           <div class="input-group">
+               <label for="matchRate">Employer Match Rate (%) - e.g., Enter 50 for 50%</label>
+               <input type="number" id="matchRate" value="50" step="1" min="0" max="100">
+           </div>
+           
+           <div class="input-group">
+               <label for="matchLimit">Employer Match Limit (% of salary)</label>
+               <input type="number" id="matchLimit" value="6" step="0.1" min="0" max="100">
+               <small style="color: #666; display: block; margin-top: 5px;">Example: 6% means the employer only matches contributions up to 6% of your salary.</small>
+           </div>
+           
+           <button onclick="calculateMatch()" class="btn-primary">Calculate Employer Match</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Your Employer Match</h2>
+           <div id="matchResults">
+               <p>Enter your details and click the button to see your match.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="match_calculator.js"></script>
+</body>
+</html>

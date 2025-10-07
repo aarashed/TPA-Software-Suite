@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(k) Required Minimum Distribution (RMD) Calculator</title>
+   <link rel="stylesheet" href="rmd_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>Required Minimum Distribution (RMD) Calculator</h1>
+       <p class="description">Calculate the RMD for a participant based on the IRS Uniform Lifetime Table. Must be taken by December 31st.</p>
+
+       <div class="card input-card">
+           <h2>RMD Inputs (Prior Year End)</h2>
+           
+           <div class="input-group">
+               <label for="priorYearBalance">Account Balance as of December 31st of Last Year ($)</label>
+               <input type="number" id="priorYearBalance" value="250000" min="0">
+               <small class="hint-text">The Fair Market Value (FMV) of the account on the previous year's final day.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="currentAge">Participant's Age at December 31st of the Current Year (Years)</label>
+               <input type="number" id="currentAge" value="75" min="73" max="115">
+               <small class="hint-text">RMDs generally begin at age 73 (or 75, depending on birth year, per SECURE 2.0).</small>
+           </div>
+           
+           <button onclick="calculateRMD()" class="btn-primary">Calculate RMD Amount</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>RMD Calculation Result</h2>
+           <div id="rmdResults">
+               <p>Enter inputs above to calculate the RMD.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="rmd_calculator.js"></script>
+</body>
+</html>

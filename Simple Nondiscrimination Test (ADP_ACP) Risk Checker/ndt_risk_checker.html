@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>ADP Nondiscrimination Risk Checker</title>
+   <link rel="stylesheet" href="ndt_risk_checker.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>ADP Nondiscrimination Risk Checker</h1>
+       <p class="description">Check the potential risk of failing the 401(k) Actual Deferral Percentage (ADP) Test.</p>
+
+       <div class="card input-card">
+           <h2>Plan Deferral Inputs (Current Year)</h2>
+           
+           <div class="input-group">
+               <label for="nhceAvg">Average Deferral % for Non-Highly Compensated Employees (NHCEs)</label>
+               <input type="number" id="nhceAvg" value="3.5" min="0" max="100" step="0.1">
+               <small class="hint-text">The average salary deferral rate (contributions/compensation) for all non-owners and lower-wage earners.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="hceAvg">Average Deferral % for Highly Compensated Employees (HCEs)</label>
+               <input type="number" id="hceAvg" value="6.0" min="0" max="100" step="0.1">
+               <small class="hint-text">The average salary deferral rate for all owners and high-wage earners (typically $160,000+ in 2025).</small>
+           </div>
+           
+           <button onclick="checkADPRisk()" class="btn-primary">Check ADP Status</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Nondiscrimination Status</h2>
+           <div id="ndtResults">
+               <p>Enter your deferral averages above to check the plan's status.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+
+       <div class="disclaimer">
+           <p><strong>Disclaimer:</strong> This tool is a simplified estimate for educational purposes only and does not constitute an actual ADP Test. Actual testing must be performed by your plan administrator or TPA.</p>
+       </div>
+   </div>
+
+   <script src="ndt_risk_checker.js"></script>
+</body>
+</html>

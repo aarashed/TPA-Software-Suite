@@ -1,0 +1,183 @@
+body {
+   font-family: 'Arial', sans-serif;
+   background-color: #f4f7fa;
+   color: #333;
+   margin: 0;
+   padding: 20px;
+   display: flex;
+   justify-content: center;
+}
+
+.calculator-container {
+   width: 100%;
+   max-width: 800px; /* Increased max width for side-by-side view */
+   background-color: #fff;
+   padding: 30px;
+   border-radius: 12px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+   color: #004d99;
+   text-align: center;
+   margin-bottom: 10px;
+}
+
+.description {
+   text-align: center;
+   color: #666;
+   margin-bottom: 25px;
+   font-size: 1.1em;
+}
+
+/* Base Card Styling */
+.card {
+   border: 1px solid #e0e6ed;
+   border-radius: 8px;
+   padding: 25px;
+   margin-bottom: 20px;
+}
+
+/* --- LOGO STYLES (Kept consistent) --- */
+.logo-container {
+   text-align: center;
+   margin-bottom: 20px;
+}
+
+.company-logo {
+   max-width: 150px;
+   height: auto;
+   display: block;
+   margin: 0 auto;
+}
+
+/* Input Group Styling */
+.input-group {
+   margin-bottom: 15px;
+}
+
+label {
+   display: block;
+   margin-bottom: 5px;
+   font-weight: bold;
+   color: #004d99;
+   font-size: 0.95em;
+}
+
+input[type="number"] {
+   width: 95%;
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 6px;
+   font-size: 1em;
+   transition: border-color 0.3s;
+}
+
+input[type="number"]:focus {
+   border-color: #007bff;
+   outline: none;
+}
+
+/* Button Styling */
+.btn-primary {
+   display: block;
+   width: 100%;
+   padding: 12px 20px;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 1.1em;
+   background-color: #007bff;
+   color: white;
+   margin-bottom: 20px;
+   transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn-primary:hover {
+   transform: translateY(-1px);
+   background-color: #0056b3;
+}
+
+/* --- SIDE-BY-SIDE COMPARISON LAYOUT --- */
+.comparison-cards {
+   display: flex;
+   gap: 20px; /* Space between the two fund cards */
+   margin-bottom: 0px;
+}
+
+.fund-card {
+   flex: 1; /* Makes both cards take up equal space */
+}
+
+.fund-a h3 {
+   color: #007bff; /* Blue for Fund A */
+}
+
+.fund-b h3 {
+   color: #28a745; /* Green for Fund B */
+}
+
+/* Results Styling */
+.result-card h2 {
+   color: #343a40;
+   border-bottom: 2px solid #e9ecef;
+   padding-bottom: 10px;
+   margin-top: 0;
+}
+
+#comparisonResults {
+   display: flex;
+   flex-direction: column;
+}
+
+.result-row {
+   display: flex;
+   justify-content: space-between;
+   padding: 8px 0;
+   border-bottom: 1px solid #eee;
+}
+
+.result-label {
+   font-weight: bold;
+   color: #333;
+   width: 40%;
+}
+
+.result-value-a, .result-value-b {
+   font-weight: 600;
+   width: 30%;
+   text-align: right;
+}
+
+.result-value-a {
+   color: #007bff;
+}
+
+.result-value-b {
+   color: #28a745;
+}
+
+.difference-row {
+   padding: 15px 0;
+   margin-top: 10px;
+   background-color: #e6f7ff; /* Light blue background for difference */
+   border-radius: 4px;
+   font-size: 1.1em;
+}
+
+.difference-value {
+   color: #dc3545; /* Red for emphasis on fees lost */
+   font-weight: bold;
+}
+
+.error-message {
+   color: #dc3545;
+   font-weight: bold;
+   text-align: center;
+   margin-top: 20px;
+   padding: 10px;
+   border: 1px solid #dc3545;
+   background-color: #f8d7da;
+   border-radius: 6px;
+   display: none;
+}

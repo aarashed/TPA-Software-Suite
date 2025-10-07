@@ -1,0 +1,153 @@
+body {
+   font-family: 'Arial', sans-serif;
+   background-color: #f4f7fa;
+   color: #333;
+   margin: 0;
+   padding: 20px;
+   display: flex;
+   justify-content: center;
+}
+
+.calculator-container {
+   width: 100%;
+   max-width: 600px;
+   background-color: #fff;
+   padding: 30px;
+   border-radius: 12px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+   color: #004d99;
+   text-align: center;
+   margin-bottom: 10px;
+}
+
+.description {
+   text-align: center;
+   color: #666;
+   margin-bottom: 25px;
+   font-size: 1.1em;
+}
+
+/* Card Styling */
+.card {
+   border: 1px solid #e0e6ed;
+   border-radius: 8px;
+   padding: 25px;
+   margin-bottom: 20px;
+}
+
+.input-group {
+   margin-bottom: 15px;
+}
+
+label {
+   display: block;
+   margin-bottom: 5px;
+   font-weight: bold;
+   color: #004d99;
+   font-size: 0.95em;
+}
+
+input[type="number"] {
+   width: 95%;
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 6px;
+   font-size: 1em;
+   transition: border-color 0.3s;
+}
+
+input[type="number"]:focus {
+   border-color: #007bff;
+   outline: none;
+}
+
+/* Button Styling */
+button {
+   padding: 12px 20px;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 1em;
+   margin-right: 10px;
+   transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn-primary {
+   background-color: #007bff;
+   color: white;
+}
+
+button:hover {
+   transform: translateY(-1px);
+}
+
+/* Results Styling */
+.result-card h2 {
+   color: #28a745;
+   border-bottom: 2px solid #e9ecef;
+   padding-bottom: 10px;
+   margin-top: 0;
+}
+
+.result-label {
+   font-weight: bold;
+   color: #333;
+   display: inline-block;
+   width: 65%; /* Adjusted for results */
+}
+
+.result-value {
+   font-weight: 600;
+}
+
+.error-message {
+   color: #dc3545;
+   font-weight: bold;
+   text-align: center;
+   margin-top: 20px;
+   padding: 10px;
+   border: 1px solid #dc3545;
+   background-color: #f8d7da;
+   border-radius: 6px;
+   display: none;
+}
+
+/* --- LOGO STYLES --- */
+.logo-container {
+   text-align: center;
+   margin-bottom: 20px;
+}
+
+.company-logo {
+   max-width: 150px; /* Adjust this size if needed */
+   height: auto;
+   display: block;
+   margin: 0 auto;
+}
+
+/* --- CHECKUP SPECIFIC STYLES --- */
+.status-indicator {
+   padding: 10px;
+   border-radius: 8px;
+   text-align: center;
+   margin-top: 15px;
+   font-weight: bold;
+   font-size: 1.2em;
+   color: white;
+}
+
+.status-on-track {
+   background-color: #28a745; /* Green */
+}
+
+.status-lagging {
+   background-color: #ffc107; /* Yellow/Orange */
+   color: #343a40;
+}
+
+.status-urgent {
+   background-color: #dc3545; /* Red */
+}

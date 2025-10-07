@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>415(c) Annual Additions Excess Allocation Calculator</title>
+   <link rel="stylesheet" href="415c_excess_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>415(c) Annual Additions Excess Allocation Calculator</h1>
+       <p class="description">Calculate the 415(c) limit and apply the IRS correction hierarchy (Refund/Forfeit) to eliminate the excess annual addition.</p>
+
+       <div class="card input-card">
+           <h2>Limit Calculation Inputs</h2>
+           
+           <div class="input-group">
+               <label for="participantCompensation">Participant 415 Compensation ($)</label>
+               <input type="number" id="participantCompensation" value="150000" min="0" step="0.01">
+               <small class="hint-text">The participant's compensation for the limitation year.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="statutoryDollarLimit">Statutory 415(c) Dollar Limit ($)</label>
+               <input type="number" id="statutoryDollarLimit" value="70000" min="0" step="0.01">
+               <small class="hint-text">The IRS-adjusted dollar limit for the year (e.g., $70,000 for 2025).</small>
+           </div>
+           
+           <hr>
+           
+           <h2>Actual Annual Additions (Contributions)</h2>
+           
+           <div class="input-group">
+               <label for="electiveDeferrals">Elective Deferrals (Pre-Tax & Roth) ($)</label>
+               <input type="number" id="electiveDeferrals" value="23500" min="0" step="0.01">
+           </div>
+
+           <div class="input-group">
+               <label for="afterTaxContributions">After-Tax Employee Contributions (if plan allows) ($)</label>
+               <input type="number" id="afterTaxContributions" value="0" min="0" step="0.01">
+           </div>
+
+           <div class="input-group">
+               <label for="employerMatch">Employer Matching Contributions ($)</label>
+               <input type="number" id="employerMatch" value="10000" min="0" step="0.01">
+           </div>
+           
+           <div class="input-group">
+               <label for="profitSharing">Profit Sharing/Nonelective Contributions ($)</label>
+               <input type="number" id="profitSharing" value="40000" min="0" step="0.01">
+           </div>
+           
+           <div class="input-group">
+               <label for="forfeitureAllocations">Forfeiture Reallocations ($)</label>
+               <input type="number" id="forfeitureAllocations" value="1000" min="0" step="0.01">
+           </div>
+           
+           <button onclick="calculate415cExcess()" class="btn-primary">Calculate 415(c) Correction</button>
+       </div>
+
+       <div class="card result-card" id="limitSummary">
+           <h2>415(c) Limit & Excess Summary</h2>
+           <div id="summaryResults">
+               <p>Enter inputs above to calculate the 415(c) limit and total excess.</p>
+           </div>
+       </div>
+
+       <div class="card correction-card" id="correctionSummary" style="display: none;">
+           <h2>Required Correction Breakdown (IRS Order)</h2>
+           <div id="correctionResults">
+               </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="415c_excess_calculator.js"></script>
+</body>
+</html>

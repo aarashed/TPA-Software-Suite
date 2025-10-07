@@ -1,0 +1,188 @@
+/* General styling */
+body {
+   font-family: 'Arial', sans-serif;
+   background-color: #f4f7fa;
+   color: #333;
+   margin: 0;
+   padding: 20px;
+   display: flex;
+   justify-content: center;
+}
+
+.calculator-container {
+   width: 100%;
+   max-width: 750px;
+   background-color: #fff;
+   padding: 30px;
+   border-radius: 12px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+   color: #cc6600; /* Gold/Orange hue for financial planning */
+   text-align: center;
+   margin-bottom: 10px;
+}
+
+.description {
+   text-align: center;
+   color: #666;
+   margin-bottom: 25px;
+   font-size: 1.1em;
+}
+
+/* Card and Input Styling */
+.card {
+   border: 1px solid #e0e6ed;
+   border-radius: 8px;
+   padding: 25px;
+   margin-bottom: 20px;
+}
+
+.input-row {
+   display: flex;
+   justify-content: space-between;
+   margin-bottom: 15px;
+}
+
+.input-group {
+   width: 48%;
+}
+
+label {
+   display: block;
+   margin-bottom: 5px;
+   font-weight: bold;
+   color: #cc6600;
+   font-size: 0.95em;
+}
+
+input[type="number"] {
+   width: 95%;
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 6px;
+   font-size: 1em;
+   text-align: right;
+}
+
+.hint-text {
+   font-size: 0.85em;
+   color: #999;
+   margin-top: 5px;
+   display: block;
+}
+
+/* Button Styling (standard) */
+.btn-primary {
+   display: block;
+   width: 100%;
+   padding: 12px 20px;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 1.1em;
+   background-color: #ff9900;
+   color: white;
+   margin-top: 25px;
+   transition: background-color 0.3s;
+}
+
+/* Result Styling */
+#metricSummary {
+   text-align: center;
+   margin-bottom: 25px;
+   padding: 20px;
+   border: 2px solid #ff9900;
+   border-radius: 8px;
+   background-color: #fff8e1;
+}
+
+.metric-item-large {
+   text-align: center;
+}
+
+.metric-value-large {
+   font-size: 2.8em;
+   font-weight: bold;
+   color: #cc6600;
+   margin: 5px 0;
+}
+
+.metric-label-large {
+   font-size: 1.2em;
+   font-weight: bold;
+   color: #333;
+}
+
+/* Analysis Table */
+.data-table {
+   width: 100%;
+   border-collapse: collapse;
+   margin-top: 15px;
+}
+
+.data-table th {
+   background-color: #cc6600;
+   color: white;
+   padding: 10px;
+   text-align: left;
+}
+
+.data-table td {
+   border: 1px solid #ddd;
+   padding: 8px;
+   text-align: right;
+}
+
+.total-row {
+   font-weight: bold;
+   background-color: #f0f0f0;
+}
+
+/* Conclusion Section */
+.conclusion-section {
+   padding: 15px;
+   margin-top: 20px;
+   border-radius: 8px;
+   font-size: 1.1em;
+   font-weight: bold;
+   text-align: center;
+}
+
+.conclusion-pass {
+   background-color: #d4edda;
+   color: #155724;
+   border: 2px solid #c3e6cb;
+}
+
+.conclusion-fail {
+   background-color: #f8d7da;
+   color: #721c24;
+   border: 2px solid #f5c6cb;
+}
+
+/* Logo and Error (standard) */
+.logo-container {
+   text-align: center;
+   margin-bottom: 20px;
+}
+
+.company-logo {
+   max-width: 150px;
+   height: auto;
+   display: block;
+   margin: 0 auto;
+}
+
+.error-message {
+   color: #dc3545;
+   font-weight: bold;
+   text-align: center;
+   margin-top: 20px;
+   padding: 10px;
+   border: 1px solid #dc3545;
+   background-color: #f8d7da;
+   border-radius: 6px;
+   display: none;
+}

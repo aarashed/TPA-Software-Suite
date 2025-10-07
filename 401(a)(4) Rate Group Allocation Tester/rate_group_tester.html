@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(a)(4) Rate Group Allocation Tester</title>
+   <link rel="stylesheet" href="rate_group_tester.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>401(a)(4) Rate Group Allocation Tester</h1>
+           <p class="description">Tests custom allocation formulas (e.g., Cross-Tested) for General Nondiscrimination by checking if each HCE's Rate Group satisfies the 410(b) Coverage Test.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Employee Data Entry (All Eligible Employees)</h2>
+           <p class="hint-text">Enter data for *every* employee eligible to receive a profit-sharing or non-match employer contribution.</p>
+
+           <table id="employeeDataTable">
+               <thead>
+                   <tr>
+                       <th>ID</th>
+                       <th>Status</th>
+                       <th>Comp ($)</th>
+                       <th>Allocation ($)</th>
+                       <th><button onclick="removeEmployee(this)" disabled>🗑️</button></th>
+                   </tr>
+               </thead>
+               <tbody id="employeeTableBody">
+                   </tbody>
+           </table>
+
+           <button onclick="addEmployee('HCE')" class="btn-secondary">Add HCE</button>
+           <button onclick="addEmployee('NHCE')" class="btn-secondary">Add NHCE</button>
+           
+           <button onclick="runRateGroupTest()" class="btn-primary">Run 401(a)(4) Rate Group Test</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Test Results Summary</h2>
+           <div id="summaryResults"></div>
+
+           <h3 style="color: #004d99;">Rate Group Details (HCEs Only)</h3>
+           <table id="rateGroupTable" class="rate-group-table">
+               <thead>
+                   <tr>
+                       <th>HCE ID</th>
+                       <th>Allocation Rate (%)</th>
+                       <th>% of NHCEs Covered</th>
+                       <th>Ratio % Test Result</th>
+                       <th>Status</th>
+                   </tr>
+               </thead>
+               <tbody id="rateGroupBody">
+                   </tbody>
+           </table>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="rate_group_tester.js"></script>
+</body>
+</html>

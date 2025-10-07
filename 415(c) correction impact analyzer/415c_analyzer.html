@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>415(c) Correction Impact Analyzer</title>
+   <link rel="stylesheet" href="415c_analyzer.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>415(c) Correction Impact Analyzer</h1>
+           <p class="description">Checks if an ADP/ACP corrective refund causes a secondary 415(c) Annual Additions failure for an HCE.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>HCE Data & Limit Inputs</h2>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="comp">HCE Compensation ($)</label>
+                   <input type="number" id="comp" value="200000" min="1" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="limit415c">415(c) Dollar Limit ($)</label>
+                   <input type="number" id="limit415c" value="69000" min="1" step="1">
+                   <small class="hint-text">Use the lesser of 100% Comp or the statutory dollar limit.</small>
+               </div>
+           </div>
+
+           <h3>Initial Annual Additions Components</h3>
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="deferrals">Elective Deferrals (401k) ($)</label>
+                   <input type="number" id="deferrals" value="23000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="match">Employer Matching Contributions ($)</label>
+                   <input type="number" id="match" value="5000" min="0" step="1">
+               </div>
+           </div>
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="ps">Profit Sharing / Nonelective Contrib. ($)</label>
+                   <input type="number" id="ps" value="38000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="forfeitures">Forfeitures Allocated ($)</label>
+                   <input type="number" id="forfeitures" value="1000" min="0" step="1">
+               </div>
+           </div>
+
+           <h3 style="margin-top: 20px;">Correction Data (From ADP/ACP Test)</h3>
+           <div class="input-row">
+               <div class="input-group full-width">
+                   <label for="refundAmount">Total ADP/ACP Corrective Refund Amount ($)</label>
+                   <input type="number" id="refundAmount" value="5000" min="0" step="1">
+                   <small class="hint-text">The amount distributed to the HCE from Tool 18.</small>
+               </div>
+           </div>
+
+           <button onclick="analyze415c()" class="btn-primary">Analyze 415(c) Impact</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Correction Analysis Results</h2>
+           <div id="metricSummary"></div>
+
+           <div class="detail-box">
+               <h3>415(c) Calculation Pre/Post-Refund</h3>
+               <table class="data-table">
+                   <thead>
+                       <tr>
+                           <th>Component</th>
+                           <th>Initial Annual Addition</th>
+                           <th>Post-Refund Annual Addition</th>
+                       </tr>
+                   </thead>
+                   <tbody id="comparisonTableBody">
+                       </tbody>
+               </table>
+           </div>
+
+           <div id="conclusion" class="conclusion-section"></div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="415c_analyzer.js"></script>
+</body>
+</html>

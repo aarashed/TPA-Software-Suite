@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(k) Eligibility Estimator</title>
+   <link rel="stylesheet" href="eligibility_estimator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>401(k) Eligibility Estimator</h1>
+       <p class="description">Determine your plan eligibility date based on your date of hire and the plan rules.</p>
+
+       <div class="card input-card">
+           <h2>Eligibility Details</h2>
+           
+           <div class="input-group">
+               <label for="hireDate">Your Date of Hire</label>
+               <input type="date" id="hireDate" required>
+           </div>
+
+           <div class="input-group">
+               <label for="serviceRequirement">Years of Service Required</label>
+               <select id="serviceRequirement">
+                   <option value="0">Immediately</option>
+                   <option value="0.5">6 Months</option>
+                   <option value="1" selected>1 Year</option>
+                   <option value="2">2 Years</option>
+               </select>
+           </div>
+           
+           <div class="input-group">
+               <label for="entryDates">Plan Entry Dates</label>
+               <select id="entryDates">
+                   <option value="1">First of the Month Following</option>
+                   <option value="2">Quarterly (Jan 1, Apr 1, Jul 1, Oct 1)</option>
+                   <option value="4" selected>Semi-Annual (Jan 1 and Jul 1)</option>
+                   <option value="12">Monthly (First of Every Month)</option>
+               </select>
+           </div>
+
+           <button onclick="calculateEligibility()" class="btn-primary">Calculate Eligibility Date</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Estimated Entry Date</h2>
+           <div id="eligibilityResults">
+               <p>Enter your details above to see your estimated entry date.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="eligibility_estimator.js"></script>
+</body>
+</html>

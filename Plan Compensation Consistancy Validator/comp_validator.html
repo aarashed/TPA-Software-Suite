@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Plan Compensation Consistency Validator</title>
+   <link rel="stylesheet" href="comp_validator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>Plan Compensation Consistency Validator</h1>
+           <p class="description">Verifies that a participant's Plan Compensation is correctly calculated based on the Plan Document's definition (e.g., W-2 plus Deferrals, minus Bonuses).</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Step 1: Define Plan Compensation Rules</h2>
+           <div class="input-row">
+               <div class="input-group full-width">
+                   <label for="baseDefinition">Base Compensation Definition</label>
+                   <select id="baseDefinition" onchange="updateCompNotes()">
+                       <option value="W2">W-2 (415 Safe Harbor Compensation)</option>
+                       <option value="415">415 Compensation (Gross Pay + Deferrals)</option>
+                   </select>
+               </div>
+           </div>
+           
+           <h3>Step 2: Enter Participant Raw Payroll Data</h3>
+           <p class="hint-text">Enter the amounts as reported by the payroll system for the participant.</p>
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="w2">W-2 Income (Box 1) ($)</label>
+                   <input type="number" id="w2" value="100000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="deferrals">Elective Deferrals (Pre-tax & Roth) ($)</label>
+                   <input type="number" id="deferrals" value="10000" min="0" step="1">
+               </div>
+           </div>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="excludedBonus">Bonus/Commission to EXCLUDE ($)</label>
+                   <input type="number" id="excludedBonus" value="0" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="excludedFringe">Fringe Benefits to EXCLUDE ($)</label>
+                   <input type="number" id="excludedFringe" value="0" min="0" step="1">
+               </div>
+           </div>
+
+           <h3>Step 3: Enter Client's Reported Plan Compensation</h3>
+           <div class="input-row">
+               <div class="input-group full-width">
+                   <label for="clientReportedComp">Plan Compensation Reported by Client/Payroll ($)</label>
+                   <input type="number" id="clientReportedComp" value="110000" min="0" step="1">
+                   <small id="compNotes" class="hint-text" style="color:#004d99;"></small>
+               </div>
+           </div>
+           
+           <button onclick="validateCompensation()" class="btn-primary">Validate Compensation Amount</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Validation Result</h2>
+           
+           <div id="metricSummary"></div>
+
+           <div class="detail-box">
+               <h3>Calculation Breakdown</h3>
+               <table class="data-table">
+                   <thead>
+                       <tr>
+                           <th>Item</th>
+                           <th>Amount ($)</th>
+                           <th>Action</th>
+                       </tr>
+                   </thead>
+                   <tbody id="breakdownTableBody">
+                       </tbody>
+               </table>
+           </div>
+
+           <div id="conclusion" class="conclusion-section"></div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="comp_validator.js"></script>
+   <script>
+       // Initialize the notes on load
+       updateCompNotes();
+   </script>
+</body>
+</html>

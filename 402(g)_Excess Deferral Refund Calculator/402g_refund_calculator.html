@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>402(g) Excess Deferral Refund Calculator</title>
+   <link rel="stylesheet" href="402g_refund_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>402(g) Excess Deferral Refund Calculator</h1>
+       <p class="description">Calculate the required refund amount (Excess + Earnings) for a 402(g) failure to meet the April 15 deadline.</p>
+
+       <div class="card input-card">
+           <h2>Correction Inputs</h2>
+           
+           <div class="input-group">
+               <label for="excessAmount">Excess Deferral Principal ($)</label>
+               <input type="number" id="excessAmount" value="1000" min="0" step="0.01">
+               <small class="hint-text">The amount contributed over the IRS limit for the year (e.g., $23,000 for 2024).</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="accountBalanceYearStart">Total Account Balance at Start of Year of Deferral ($)</label>
+               <input type="number" id="accountBalanceYearStart" value="50000" min="0" step="0.01">
+               <small class="hint-text">Balance on Jan 1 of the year the excess occurred (before any new contributions).</small>
+           </div>
+
+           <div class="input-group">
+               <label for="totalContributions">Total Contributions During Year of Deferral ($)</label>
+               <input type="number" id="totalContributions" value="20000" min="0" step="0.01">
+               <small class="hint-text">Sum of all contributions (Deferrals, Match, Profit Sharing) made in the year of the excess.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="accountBalanceYearEnd">Total Account Balance at End of Year of Deferral ($)</label>
+               <input type="number" id="accountBalanceYearEnd" value="75000" min="0" step="0.01">
+               <small class="hint-text">Balance on Dec 31 of the year the excess occurred (before any refunds).</small>
+           </div>
+           
+           <button onclick="calculate402gRefund()" class="btn-primary">Calculate Required Refund</button>
+       </div>
+
+       <div class="card result-card" id="summary">
+           <h2>Refund Summary</h2>
+           <div id="refundSummary">
+               <p>Enter inputs above to calculate the required refund amount.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="402g_refund_calculator.js"></script>
+</body>
+</html>

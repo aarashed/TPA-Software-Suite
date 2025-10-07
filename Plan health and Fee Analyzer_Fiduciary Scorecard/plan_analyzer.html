@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(k) Plan Health & Fee Analyzer</title>
+   <link rel="stylesheet" href="plan_analyzer.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>401(k) Plan Health & Fee Analyzer</h1>
+           <p class="description">Calculate key plan metrics, assess fee reasonableness, and generate a Fiduciary Scorecard for client review.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Plan Data Inputs (From Annual Census/Form 5500)</h2>
+           
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="totalAssets">Total Plan Assets (Year End $)</label>
+                   <input type="number" id="totalAssets" value="5000000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="totalFees">Total Annual Plan Fees Paid ($)</label>
+                   <input type="number" id="totalFees" value="45000" min="0" step="0.01">
+                   <small class="hint-text">Includes recordkeeping, TPA, advisor, and investment expenses (if known).</small>
+               </div>
+           </div>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="totalEligible">Total Eligible Employees</label>
+                   <input type="number" id="totalEligible" value="50" min="1" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="totalParticipants">Total Participants with Balance</label>
+                   <input type="number" id="totalParticipants" value="40" min="0" step="1">
+               </div>
+           </div>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="nhceParticipation">NHCE Participation Rate (%)</label>
+                   <input type="number" id="nhceParticipation" value="75" min="0" max="100" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="nhceAvgDeferral">NHCE Average Deferral Rate (%)</label>
+                   <input type="number" id="nhceAvgDeferral" value="5.5" min="0" max="100" step="0.1">
+               </div>
+           </div>
+           
+           <button onclick="analyzePlanHealth()" class="btn-primary">Generate Fiduciary Scorecard</button>
+       </div>
+
+       <div class="card result-card" id="scorecardResults" style="display: none;">
+           <h2>Fiduciary Scorecard & Key Metrics</h2>
+           
+           <div id="healthScoreDisplay"></div>
+           
+           <div id="metricsSummary"></div>
+
+           <h3 style="color: #004d99; border-bottom: 1px solid #e0e6ed; padding-bottom: 5px;">Fiduciary & Compliance Risk Assessment</h3>
+           <table id="riskTable" class="risk-table">
+               <thead>
+                   <tr>
+                       <th>Metric</th>
+                       <th>Plan Value</th>
+                       <th>Industry Benchmark</th>
+                       <th>Status</th>
+                   </tr>
+               </thead>
+               <tbody id="riskBody">
+                   </tbody>
+           </table>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="plan_analyzer.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>401(k) Loan Amortization Schedule Calculator</title>
+   <link rel="stylesheet" href="loan_amortization_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>401(k) Loan Amortization Calculator</h1>
+       <p class="description">Calculate the required monthly payment and full amortization schedule for a new 401(k) loan.</p>
+
+       <div class="card input-card">
+           <h2>Loan Inputs</h2>
+           
+           <div class="input-group">
+               <label for="loanAmount">Loan Principal Amount ($)</label>
+               <input type="number" id="loanAmount" value="10000" min="0">
+           </div>
+           
+           <div class="input-group">
+               <label for="interestRate">Annual Interest Rate (%)</label>
+               <input type="number" id="interestRate" value="6.0" min="0.1" step="0.1">
+           </div>
+
+           <div class="input-group">
+               <label for="loanTermYears">Loan Term (Years)</label>
+               <input type="number" id="loanTermYears" value="5" min="1" max="15">
+               <small class="hint-text">Max 5 years for general loan; max 15 years for primary residence loan.</small>
+           </div>
+           
+           <button onclick="calculateAmortization()" class="btn-primary">Generate Loan Schedule</button>
+       </div>
+
+       <div class="card result-card" id="summary">
+           <h2>Loan Summary</h2>
+           <div id="loanSummary">
+               <p>Enter inputs above to calculate the loan schedule.</p>
+           </div>
+       </div>
+
+       <div class="card result-card schedule-card" id="scheduleCard" style="display: none;">
+           <h2>Amortization Schedule</h2>
+           <div style="max-height: 400px; overflow-y: auto;">
+               <table id="amortizationTable">
+                   <thead>
+                       <tr>
+                           <th>Pmt #</th>
+                           <th>Payment</th>
+                           <th>Interest</th>
+                           <th>Principal</th>
+                           <th>Remaining Balance</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       </tbody>
+               </table>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="loan_amortization_calculator.js"></script>
+</body>
+</html>

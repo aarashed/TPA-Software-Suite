@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>SECURE 2.0 Tax Credit Estimator</title>
+   <link rel="stylesheet" href="secure2_credit.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>SECURE 2.0 Tax Credit Estimator</h1>
+       <p class="description">Estimate the potential tax savings for starting or joining a retirement plan.</p>
+
+       <div class="card input-card">
+           <h2>Business and Plan Details</h2>
+           
+           <div class="input-group">
+               <label for="employees">Number of Eligible Employees (excluding 5% owners/family)</label>
+               <input type="number" id="employees" value="10" min="1" max="100">
+               <small class="hint-text">For plan-starting credit (Form 8881), must be 100 or fewer employees earning over $5k.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="avgSetupCost">Estimated Annual Setup & Admin Cost ($)</label>
+               <input type="number" id="avgSetupCost" value="1500" min="100">
+               <small class="hint-text">Estimate includes plan setup, recordkeeping, and consulting fees.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="avgComp">Average Compensation Per Employee ($)</label>
+               <input type="number" id="avgComp" value="50000" min="1000">
+               <small class="hint-text">Used to estimate the contribution credit portion.</small>
+           </div>
+
+           <button onclick="calculateCredit()" class="btn-primary">Calculate Estimated Tax Credit</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Estimated Total Credit (Years 1-3)</h2>
+           <div id="creditResults">
+               <p>Enter business details above to calculate your savings.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="secure2_credit.js"></script>
+</body>
+</html>

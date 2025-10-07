@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Top-Heavy Minimum Contribution Report</title>
+   <link rel="stylesheet" href="top_heavy_report.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>Top-Heavy Minimum Contribution Report</h1>
+           <p class="description">Calculates the required minimum employer contribution for all eligible Non-Highly Compensated Employees (NHCEs) in a Top-Heavy plan.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Compliance Status & NHCE Data</h2>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="topHeavyStatus">Plan Status (From 416 Test - Tool 17)</label>
+                   <select id="topHeavyStatus" onchange="updateTopHeavyMinimum()">
+                       <option value="NO">Not Top-Heavy</option>
+                       <option value="YES">Top-Heavy (Required Minimum Applies)</option>
+                   </select>
+               </div>
+               <div class="input-group">
+                   <label for="minimumPercent">Required Minimum Contribution Percentage</label>
+                   <input type="number" id="minimumPercent" value="3.0" min="0" max="3.0" step="0.5" disabled>
+                   <small class="hint-text">Capped at 3.0% unless Key Employees max out at <3.0%.</small>
+               </div>
+           </div>
+
+           <h3 style="margin-top: 25px;">Eligible NHCE Data Entry</h3>
+           <p class="hint-text">Enter data for all NHCEs eligible for the Top-Heavy minimum contribution (typically all non-Key eligible participants).</p>
+
+           <table id="nhceDataTable">
+               <thead>
+                   <tr>
+                       <th>ID</th>
+                       <th>NHCE Name/ID</th>
+                       <th>Compensation ($)</th>
+                       <th>Existing Employer Contrib. ($)</th>
+                       <th><button onclick="removeNHCE(this)" disabled>🗑️</button></th>
+                   </tr>
+               </thead>
+               <tbody id="nhceTableBody">
+                   </tbody>
+           </table>
+
+           <button onclick="addNHCE()" class="btn-secondary">Add NHCE Row</button>
+           
+           <button onclick="generateReport()" class="btn-primary">Generate Final Contribution Report</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Required Contribution Schedule</h2>
+           
+           <div id="summaryMetrics"></div>
+
+           <table id="contributionTable" class="contribution-table">
+               <thead>
+                   <tr>
+                       <th>NHCE Name/ID</th>
+                       <th>Comp. Used</th>
+                       <th>Existing Employer Contribution</th>
+                       <th>Required Minimum Contribution ($)</th>
+                       <th>**ADDITIONAL QNEC REQUIRED ($)**</th>
+                   </tr>
+               </thead>
+               <tbody id="contributionTableBody">
+                   </tbody>
+           </table>
+
+           <div id="finalAction" class="conclusion-section"></div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="top_heavy_report.js"></script>
+</body>
+</html>

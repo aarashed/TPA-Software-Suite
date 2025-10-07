@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Power of Compounding Visualizer</title>
+   <link rel="stylesheet" href="compounding_visualizer.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>Power of Compounding Visualizer</h1>
+       <p class="description">See how small, consistent savings can grow exponentially over time.</p>
+
+       <div class="card input-card">
+           <h2>Your Saving Plan</h2>
+           
+           <div class="input-group">
+               <label for="initialSavings">Starting Balance ($)</label>
+               <input type="number" id="initialSavings" value="500" min="0">
+           </div>
+
+           <div class="input-group">
+               <label for="monthlyContribution">Monthly Contribution ($)</label>
+               <input type="number" id="monthlyContribution" value="100" min="0">
+           </div>
+           
+           <div class="input-group">
+               <label for="years">Investment Time Horizon (Years)</label>
+               <input type="number" id="years" value="30" min="1" max="60">
+           </div>
+           
+           <div class="input-group">
+               <label for="annualReturn">Assumed Annual Return (%)</label>
+               <input type="number" id="annualReturn" value="7.0" step="0.1" min="1" max="20">
+           </div>
+           
+           <button onclick="calculateCompounding()" class="btn-primary">Calculate Future Value</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Your Projected Growth</h2>
+           <div id="compoundingResults">
+               <p>Enter your savings plan details above to see your projected growth.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="compounding_visualizer.js"></script>
+</body>
+</html>

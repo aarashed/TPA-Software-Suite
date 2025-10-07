@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Max 401(k) Contribution Calculator</title>
+   <link rel="stylesheet" href="max_contribution.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+       </div>
+
+       <h1>Max 401(k) Contribution Calculator</h1>
+       <p class="description">Calculate the maximum pre-tax/Roth contribution you can make this year.</p>
+
+       <div class="card input-card">
+           <h2>Your Details</h2>
+           
+           <div class="input-group">
+               <label for="age">Your Current Age (Years)</label>
+               <input type="number" id="age" value="40" min="18" max="75">
+           </div>
+
+           <div class="input-group">
+               <label for="annualIncome">Your Estimated Annual Compensation ($)</label>
+               <input type="number" id="annualIncome" value="90000" min="0">
+           </div>
+           
+           <button onclick="calculateMax()" class="btn-primary">Calculate Max Contribution</button>
+       </div>
+
+       <div class="card result-card" id="results">
+           <h2>Maximum Contribution Limits</h2>
+           <div id="contributionResults">
+               <p>Enter your details and click the button to see your limits.</p>
+           </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="max_contribution.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Participant Loan and Hardship Manager</title>
+   <link rel="stylesheet" href="loan_manager.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>Participant Loan and Hardship Manager</h1>
+           <p class="description">Calculates maximum loan eligibility and generates the loan amortization schedule.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Loan Eligibility & Terms</h2>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="vestedBalance">Participant Vested Account Balance ($)</label>
+                   <input type="number" id="vestedBalance" value="100000" min="1" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="outstandingBalance">Existing Outstanding Loan Balance ($)</label>
+                   <input type="number" id="outstandingBalance" value="10000" min="0" step="1">
+               </div>
+           </div>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="proposedLoanAmount">Proposed New Loan Amount ($)</label>
+                   <input type="number" id="proposedLoanAmount" value="15000" min="1" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="interestRate">Annual Interest Rate (%)</label>
+                   <input type="number" id="interestRate" value="7.0" min="0.1" max="20" step="0.1">
+               </div>
+           </div>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="termYears">Loan Term (Years)</label>
+                   <input type="number" id="termYears" value="5" min="1" max="5" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="paymentFrequency">Payment Frequency (Per Year)</label>
+                   <select id="paymentFrequency">
+                       <option value="12">Monthly (12)</option>
+                       <option value="24">Semi-Monthly (24)</option>
+                       <option value="26">Bi-Weekly (26)</option>
+                       <option value="52">Weekly (52)</option>
+                   </select>
+               </div>
+           </div>
+           
+           <button onclick="calculateLoan()" class="btn-primary">Calculate Loan & Generate Schedule</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Loan Analysis & Amortization</h2>
+           
+           <div id="metricSummary"></div>
+
+           <div id="eligibilityConclusion" class="conclusion-section"></div>
+
+           <div class="detail-box" style="margin-top: 20px;">
+               <h3>Amortization Schedule</h3>
+               <table class="data-table">
+                   <thead>
+                       <tr>
+                           <th>#</th>
+                           <th>Date</th>
+                           <th>Payment ($)</th>
+                           <th>Interest ($)</th>
+                           <th>Principal ($)</th>
+                           <th>Remaining Balance ($)</th>
+                       </tr>
+                   </thead>
+                   <tbody id="amortizationTableBody">
+                       </tbody>
+               </table>
+           </div>
+
+           <p class="disclaimer">Note: The amortization schedule assumes payments are made exactly on time and does not account for payment holidays or fees.</p>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="loan_manager.js"></script>
+</body>
+</html>
