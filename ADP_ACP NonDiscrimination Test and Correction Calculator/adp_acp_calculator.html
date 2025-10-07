@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>ADP/ACP Nondiscrimination Test & Correction Calculator</title>
+   <link rel="stylesheet" href="adp_acp_tester.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>ADP/ACP Nondiscrimination Test & Correction Calculator</h1>
+           <p class="description">Calculates the ADP/ACP test results and determines the required corrective distribution/refund for Highly Compensated Employees (HCEs).</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>Test Inputs</h2>
+           
+           <div class="input-group">
+               <label for="nhceAdp">NHCE Average Deferral Percentage (ADP) (%)</label>
+               <input type="number" id="nhceAdp" value="4.0" min="0" max="100" step="0.01">
+               <small class="hint-text">The calculated ADP for the Non-Highly Compensated Employee group.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="nhceAcp">NHCE Average Contribution Percentage (ACP) (%)</label>
+               <input type="number" id="nhceAcp" value="3.0" min="0" max="100" step="0.01">
+               <small class="hint-text">The calculated ACP for the NHCE group (Matching/After-Tax Contributions).</small>
+           </div>
+
+           <hr>
+           
+           <h2>HCE Data Entry Table</h2>
+           <p class="hint-text">Input Compensation, Deferrals (for ADP), and Match/After-Tax (for ACP) for each HCE.</p>
+
+           <table id="hceDataTable">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>Comp ($)</th>
+                       <th>Deferrals ($)</th>
+                       <th>Match/After-Tax ($)</th>
+                       <th><button onclick="removeHCE(this)" disabled>🗑️</button></th>
+                   </tr>
+               </thead>
+               <tbody id="hceTableBody">
+                   </tbody>
+           </table>
+
+           <button onclick="addHCE()" class="btn-secondary">Add HCE</button>
+           
+           <button onclick="runAdpAcpTests()" class="btn-primary">Run ADP/ACP Tests & Calculate Refunds</button>
+       </div>
+
+       <div class="card result-card" id="adpResults" style="display: none;">
+           <h2>ADP Test Results & Correction</h2>
+           <div id="adpSummary"></div>
+           <table id="adpCorrectionTable" class="correction-table">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>Original ADP (%)</th>
+                       <th>Required Refund ($)</th>
+                       <th>New ADP (%)</th>
+                   </tr>
+               </thead>
+               <tbody id="adpCorrectionBody"></tbody>
+           </table>
+       </div>
+
+       <div class="card result-card" id="acpResults" style="display: none;">
+           <h2>ACP Test Results & Correction</h2>
+           <div id="acpSummary"></div>
+           <table id="acpCorrectionTable" class="correction-table">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>Original ACP (%)</th>
+                       <th>Required Refund/Forfeit ($)</th>
+                       <th>New ACP (%)</th>
+                   </tr>
+               </thead>
+               <tbody id="acpCorrectionBody"></tbody>
+           </table>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="adp_acp_tester.js"></script>
+</body>
+</html>

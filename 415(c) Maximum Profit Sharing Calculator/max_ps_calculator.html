@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>415(c) Maximum Profit Sharing Calculator</title>
+   <link rel="stylesheet" href="max_ps_calculator.css">
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+       <div class="logo-container">
+           <a href="https://software-home.net/index.html" target="_blank">
+            <img src="company_logo.png" alt="Software Home - Click to Visit Website" class="company-logo">
+        </a>
+           <h1>415(c) Maximum Profit Sharing Calculator</h1>
+           <p class="description">Calculates the maximum remaining Profit Sharing (or Nonelective) contribution an HCE can receive without violating the 415(c) Annual Additions limit.</p>
+       </div>
+
+       <div class="card input-card">
+           <h2>HCE Data Inputs</h2>
+
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="comp">HCE Compensation ($)</label>
+                   <input type="number" id="comp" value="200000" min="1" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="limit415cStatutory">415(c) Statutory Dollar Limit (e.g., $69,000 for 2024)</label>
+                   <input type="number" id="limit415cStatutory" value="69000" min="1" step="1">
+               </div>
+           </div>
+
+           <h3>Annual Additions Made So Far (Must be accurate for the plan/limitation year)</h3>
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="deferrals">Elective Deferrals (401k) ($)</label>
+                   <input type="number" id="deferrals" value="23000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="match">Employer Matching Contributions ($)</label>
+                   <input type="number" id="match" value="5000" min="0" step="1">
+               </div>
+           </div>
+           <div class="input-row">
+               <div class="input-group">
+                   <label for="forfeitures">Forfeitures Allocated ($)</label>
+                   <input type="number" id="forfeitures" value="1000" min="0" step="1">
+               </div>
+               <div class="input-group">
+                   <label for="qnec">Prior QNEC/QMAC Contributions Treated as PS ($)</label>
+                   <input type="number" id="qnec" value="0" min="0" step="1">
+               </div>
+           </div>
+
+           <button onclick="calculateMaxPS()" class="btn-primary">Calculate Maximum Profit Sharing</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Maximum Contribution Result</h2>
+           
+           <div id="metricSummary"></div>
+
+           <div class="detail-box">
+               <h3>Detailed 415(c) Analysis</h3>
+               <table class="data-table">
+                   <thead>
+                       <tr>
+                           <th>Annual Addition Component</th>
+                           <th>Amount ($)</th>
+                       </tr>
+                   </thead>
+                   <tbody id="analysisTableBody">
+                       </tbody>
+               </table>
+           </div>
+
+           <div id="conclusion" class="conclusion-section"></div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="max_ps_calculator.js"></script>
+</body>
+</html>
