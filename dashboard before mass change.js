@@ -3,6 +3,25 @@ function loadHome() {
    document.getElementById('tool-iframe').src = "dashboard_home.html";
    document.getElementById('breadcrumb-path').innerHTML = 'Dashboard Home';
 }
+//testing
+
+// New function to handle the main sidebar toggle
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const arrow = document.querySelector('.main-content-wrapper h2 .toggle-arrow');
+    
+    if (sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('hidden');
+        arrow.textContent = '▼'; // Open state
+    } else {
+        sidebar.classList.add('hidden');
+        arrow.textContent = '▶'; // Closed state
+    }
+}
+
+//testing
+
+
 
 function toggleLinks(header) {
    // 1. Find the sibling container that holds the links (either tool-links-container or sub-tool-links-container)
@@ -26,41 +45,7 @@ function toggleLinks(header) {
        arrow.textContent = '▶';
    }
 }
-
-// === CORRECTED: Function to toggle the entire sidebar ===
-function toggleSidebar(button) {
-    // Get the main wrapper element, which controls the layout
-    const wrapper = document.querySelector('.main-content-wrapper');
-    const sidebar = document.querySelector('.sidebar-menu');
-    
-    // Elements to hide/show
-    // Selects the 'TPA Modules' text (the span that is NOT the icon and NOT the button)
-    const sidebarTitle = sidebar.querySelector('h2 span:not(.group-icon):not(.sidebar-toggle-button)');
-    const sidebarIcon = sidebar.querySelector('h2 .group-icon');
-    const moduleGrid = sidebar.querySelector('.module-grid-sidebar');
-    
-    // Toggle a class on the wrapper to trigger the CSS transition
-    wrapper.classList.toggle('sidebar-collapsed');
-    
-    // Toggle the button icon and content visibility
-    if (wrapper.classList.contains('sidebar-collapsed')) {
-        button.textContent = '»'; // Right arrow when collapsed (to indicate expand)
-        
-        // Hide text and content (The CSS will handle the rest)
-        if (sidebarTitle) sidebarTitle.style.display = 'none';
-        if (sidebarIcon) sidebarIcon.style.display = 'none';
-        if (moduleGrid) moduleGrid.style.display = 'none';
-        
-    } else {
-        button.textContent = '«'; // Left arrow when expanded (to indicate collapse)
-
-        // Show text and content
-        if (sidebarTitle) sidebarTitle.style.display = 'inline';
-        if (sidebarIcon) sidebarIcon.style.display = 'inline';
-        if (moduleGrid) moduleGrid.style.display = 'block';
-    }
-}
-
+//testing end
 
 /**
 * Loads the external tool into the iFrame and updates the breadcrumb.
@@ -76,31 +61,33 @@ function loadTool(link) {
    updateBreadcrumb(link);
 }
 
+// Ensure the breadcrumb function is adapted to the new HTML structure
+// (It only needs to look for the 'A' tag logic now)
 function updateBreadcrumb(element) {
+   // ... (Use the same logic from the previous reply, but focus on the 'A' tag part) ...
    const breadcrumbPath = document.getElementById('breadcrumb-path');
    let path = 'Dashboard Home';
    
+   // Logic for H3 and H4 clicks (for toggling arrows and breadcrumb updates)
    if (element.tagName === 'H3' || element.tagName === 'H4') {
+       // We only use the breadcrumb function for the sidebar links (A tags) now,
+       // Headers only run toggleLinks. You can simplify this function greatly
+       // if you separate the concerns, but we'll leave it for structure.
        return;
    }
    
    // --- Tool Link Click (A tag) ---
    if (element.tagName === 'A') {
-       // Find the closest H4 (sub-subheader) if it exists
        const h4 = element.closest('.sub-tool-links-container')
                   ? element.closest('.sub-tool-links-container').previousElementSibling
                   : null;
 
-       // Find the closest H3 (main module header)
        const h3 = element.closest('.module-group').querySelector('h3');
-       
-       // Clean up the text, removing the arrow characters for a clean breadcrumb path
        const h3Text = h3.textContent.replace('▼', '').replace('▶', '').trim();
        
        path += ' <span class="separator">/</span> ' + h3Text;
 
        if (h4) {
-           // Clean up the H4 text
            const h4Text = h4.textContent.replace('▼', '').replace('▶', '').trim();
            path += ' <span class="separator">/</span> ' + h4Text;
        }

@@ -1,198 +1,43 @@
-/* --- Single Page Layout (Flexbox) --- */
-.main-content {
-   /* Padding removed from main-content to allow sidebar to touch the edges */
-   padding: 0;
-}
-
-.main-content-wrapper {
-   display: flex;
-   min-height: calc(100vh - 100px); /* Ensures it takes up minimum full screen height */
-}
-
-/* --- Sidebar Styling --- */
-.sidebar-menu {
-   width: 300px; /* Fixed width for the menu */
-   background-color: #f8f9fa; /* Light gray background */
-   padding: 30px 20px;
-   border-right: 1px solid #e0e0e0;
-   overflow-y: auto; /* Allows scrolling if the menu is long */
-}
-
-.sidebar-menu h2 {
-   color: var(--color-primary);
-   font-size: 1.6em;
-   margin-bottom: 20px;
-   padding-bottom: 5px;
-   border-bottom: 2px solid var(--color-accent); /* Accent separator */
-}
-
-/* --- Content Area (Right Side) --- */
-.content-area {
-   flex-grow: 1; /* Takes up all remaining space */
-   padding: 20px 30px;
-   display: flex;
-   flex-direction: column; /* Stacks breadcrumb and iframe vertically */
-}
-
-#tool-iframe {
-   width: 100%;
-   flex-grow: 1; /* iFrame takes up all remaining vertical space */
-   border: none;
-   background-color: white;
-}
-
 /* --- Global & Base Styling --- */
-
-/* --- Breadcrumb Styling --- */
-.breadcrumb-container {
-   padding: 15px 0;
-   margin-bottom: 20px;
-   border-bottom: 1px solid #e0e0e0;
-   font-size: 0.95em;
-   color: #6c757d; /* Muted gray text */
+:root {
+   --color-primary: #003366; 
+   --color-accent: #ff9900; 
+   --color-success: #28a745;
+   --color-warning: #ffc107;
+   --color-danger: #dc3545;
+   --color-info: #007bff; 
 }
 
-.breadcrumb-label {
-   font-weight: 600;
-   color: var(--color-primary);
-   margin-right: 5px;
+html, body {
+   height: 100%;
 }
-
-#breadcrumb-path a {
-   color: #004d99; /* Blue links */
-   text-decoration: none;
-}
-
-#breadcrumb-path a:hover {
-   text-decoration: underline;
-}
-
-/* Separator style */
-#breadcrumb-path .separator {
-   margin: 0 8px;
-   color: #adb5bd; /* Lighter separator */
-}
-
-/* CSS for Collapsible Menu Functionality */
-.collapsible-header {
-   cursor: pointer;
-   /* Optional: Make the header stand out as clickable */
-   user-select: none; /* Prevent text selection on click */
-}
-
-.tool-links-container.hidden {
-   display: none; /* Crucial for hiding the sub-menu */
-}
-.sidebar-menu.hidden {
-   display: none;
-}
-
-/* Existing CSS for module-group h3 */
-.module-group h3 {
-   color: var(--color-primary);
-   margin-top: 0;
-   padding-bottom: 5px;
-   margin-bottom: 20px;
-   font-size: 1.4em;
-   font-weight: 600;
-   cursor: pointer;
-   user-select: none;
-   
-   /* NEW: Use flexbox for spacing */
-   display: flex;
-   align-items: center;
-}
-
-/* Style for the meaningful group icons (✅, ⚙️, 📑) */
-.module-group h3 .group-icon {
-   font-size: 1.2em;
-   margin-right: 12px;
-   color: var(--color-accent);
-   /* Ensure the main icon is not moved by JS */
-}
-
-/* Style for the collapsible arrow (▼, ▶) */
-.module-group h3.toggle-arrow {
-   font-size: 1.2em;
-   color: var(--color-accent);
-   
-   /* KEY FIX: Push the arrow to the far right */
-   margin-left: auto;
-   
-   /* Add a small right margin for visual clearance */
-   margin-right: 5px;
-   
-   transition: transform 0.3s ease;
-}
-
-/* Ensure sub-sub-menus are properly hidden when the class is applied */
-.sub-tool-links-container.hidden {
-   display: none !important; /* Use !important to guarantee it overrides any general rules */
-}
-
-/* Style for the new H4 sub-headers */
-.collapsible-subheader {
-   font-size: 1.1em; /* Smaller than H3 */
-   font-weight: 600;
-   color: #004d99; /* A slightly lighter blue than the main H3 */
-   padding: 8px 0;
-   margin: 10px 0 5px 0;
-   border-bottom: 1px solid #e9ecef; /* Subtle divider */
-   cursor: pointer;
-   user-select: none;
-   
-   /* Flex properties to push the arrow right */
-   display: flex;
-   align-items: center;
-}
-
-/* Position the arrow within the H4 */
-.collapsible-subheader.toggle-arrow {
-   font-size: 1em;
-   color: #ff9900;
-   margin-left: auto; /* Pushes the arrow to the far right */
-   margin-right: 5px;
-   transition: transform 0.3s ease;
-}
-
-.tool-links-container.hidden {
-   display: none;
-}
-
-.sidebar-menu.hidden {
-   display: none;
-}
-
-/* Optional: Rotate icon when links are open */
-.collapsible-header.icon.rotated {
-   transform: rotate(90deg);
-}
-
 body {
    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-   background-color: #f4f7fa; /* Light, soft background */
+   background-color: #f4f7fa;
    color: #333;
    margin: 0;
    padding: 0;
    display: flex;
-   justify-content: center;
+   flex-direction: column;
+   min-height: 100vh;
+   align-items: center; 
 }
 
+/* --- Dashboard Container & Layout --- */
 .dashboard-container {
    width: 100%;
    max-width: 1300px;
    background-color: #fff;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* Modern, soft shadow */
+   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+   display: flex;
+   flex-direction: column;
+   flex-grow: 1; 
 }
 
-/* --- Color Palette Variables --- */
-:root {
-   --color-primary: #003366; /* Deep Corporate Blue */
-   --color-accent: #ff9900; /* Orange Accent */
-   --color-success: #28a745;
-   --color-warning: #ffc107;
-   --color-danger: #dc3545;
-   --color-info: #007bff; /* General info blue */
+.main-content-wrapper {
+   display: flex;
+   flex-grow: 1; /* Allows the wrapper to expand vertically */
+   min-height: calc(100vh - 100px); 
 }
 
 /* --- Header Styling --- */
@@ -203,59 +48,11 @@ body {
    display: flex;
    align-items: center;
    justify-content: space-between;
-   border-bottom: 5px solid var(--color-accent); /* Strong defining accent */
+   border-bottom: 5px solid var(--color-accent); 
+   flex-shrink: 0; 
 }
 
-.header-left {
-   display: flex;
-   align-items: center;
-   /* Removed margin-right from logo, now applied to the whole logo container */
-}
-
-.header {
-   background-color: var(--color-primary);
-   color: white;
-   padding: 15px 40px;
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   border-bottom: 5px solid var(--color-accent); /* Strong defining accent */
-}
-
-.header-left {
-   display: flex;
-   align-items: center;
-   /* Removed margin-right from logo, now applied to the whole logo container */
-}
-
-.logo-link { /* New style for the clickable logo wrapper */
-   display: flex; /* Allows centering of logo if needed */
-   align-items: center;
-   justify-content: center;
-   height: 80px; /* Give the logo container a fixed height */
-   width: 80px;  /* Give the logo container a fixed width */
-   margin-right: 25px; /* More space between logo and title */
-   background-color: white; /* Give it a white circular background */
-   border-radius: 50%;
-   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-   transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.logo-link:hover {
-   transform: scale(1.05); /* Slightly grow on hover */
-   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* More pronounced shadow on hover */
-}
-
-.company-logo {
-   max-width: 70px; /* Make the logo itself larger, filling its new container */
-   max-height: 70px; /* Ensure it doesn't get distorted if not square */
-   height: auto;
-   border-radius: 50%; /* Keep it circular */
-   /* border: 2px solid white; Removed, as background is now white */
-}
-/* Ensure the redundant H1 style is removed or ignored */
 .header h1 {
-   /* display: none; /* Safely hide it if you want to leave it in the HTML for reference */
    margin: 0;
    font-size: 1.7em;
    font-weight: 300;
@@ -266,109 +63,193 @@ body {
    opacity: 0.8;
 }
 
-/* --- Main Content Layout --- */
-.main-content {
-   padding: 30px 40px;
+/* --- Sidebar Styling (Default OPEN State) --- */
+.sidebar-menu {
+   width: 300px; 
+   min-width: 300px; /* Important for the flex container to respect this size */
+   flex-shrink: 0; /* Prevents it from shrinking prematurely */
+   background-color: #f8f9fa; 
+   padding: 30px 20px;
+   border-right: 1px solid #e0e0e0;
+   overflow-y: auto; 
+   transition: all 0.3s ease-in-out; /* Enable smooth transition */
 }
 
-h2 {
+/* Sidebar H2 Styling (Default OPEN State) */
+.sidebar-menu h2 {
    color: var(--color-primary);
    font-size: 1.6em;
    margin-bottom: 20px;
    padding-bottom: 5px;
-   border-bottom: 1px solid #e0e0e0;
+   border-bottom: 2px solid var(--color-accent); 
+   display: flex; /* IMPORTANT for aligning the icon, text, and button */
+   align-items: center;
+   justify-content: space-between;
 }
 
-/* --- Status Cards (Metric Overview) --- */
-.status-overview {
-   margin-bottom: 40px;
+/* Sidebar Toggle Button (Default OPEN State) */
+.sidebar-toggle-button {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--color-accent);
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 0 5px;
+    line-height: 1; 
 }
 
-.status-cards {
-   display: grid;
-   grid-template-columns: repeat(4, 1fr);
-   gap: 20px;
+/* === CRITICAL SIDEBAR COLLAPSED STATE FIX === */
+
+/* 1. Shrink the Sidebar */
+.main-content-wrapper.sidebar-collapsed .sidebar-menu {
+    width: 60px !important; 
+    min-width: 60px !important;
+    flex-basis: 60px !important; 
+    padding: 30px 5px !important; 
+    overflow: hidden; 
+    border-right: none;
 }
 
-.card {
-   background-color: white;
-   padding: 20px;
-   border-radius: 8px;
-   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
-   transition: transform 0.2s;
+/* 2. Hide H2 content (text/icon) and Center the Button */
+.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 {
+    /* Set H2 to flex again for centering, but ensure its children are small */
+    justify-content: center; 
+    /* The border-bottom from the open state must be hidden */
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 30px !important; /* Add space below the arrow */
 }
 
-.card:hover {
-   transform: translateY(-2px);
+/* 3. Ensure ONLY the Toggle Button is Visible and Large */
+.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 .sidebar-toggle-button {
+    font-size: 2em; /* Make the arrow large */
+    margin: 0;
+    padding: 0;
+    line-height: 1; 
+    order: 1; /* Ensure it is the first or only element visually */
+    display: block;
+}
+/* This is a secondary way to ensure the home icon is hidden, the JS also handles this */
+.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 .group-icon,
+.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 span:not(.group-icon):not(.sidebar-toggle-button) {
+    display: none !important;
 }
 
-.status-card {
-   text-align: center;
-   color: white;
-   border-bottom: 4px solid; /* Use color for border */
+/* 4. Hide all Module Content (links, headers, arrows) */
+.main-content-wrapper.sidebar-collapsed .module-grid-sidebar {
+    display: none !important; 
 }
 
-.status-green {
-   background-color: var(--color-success);
-   border-color: #1e7e34;
+/* 5. Content Area Expansion */
+.main-content-wrapper.sidebar-collapsed .content-area {
+    flex-grow: 1;
+    padding-left: 20px;
 }
-.status-yellow {
-   background-color: var(--color-warning);
-   color: #333;
-   border-color: #d39e00;
-}
-.status-red {
-   background-color: var(--color-danger);
-   border-color: #bd2130;
-}
-.status-blue {
-   background-color: var(--color-info);
-   border-color: #0056b3;
-}
+/* =================================== */
 
-.metric-value {
-   font-size: 2.2em;
-   font-weight: 600;
-}
 
-.metric-label {
-   font-size: 0.9em;
-   margin-top: 5px;
-   opacity: 0.9;
+/* --- Menu Toggling & Arrow Styling (H3/H4) --- */
+.module-group h3, .collapsible-subheader {
+   cursor: pointer;
+   user-select: none;
+   display: flex;
+   align-items: center;
+   transition: background-color 0.2s; 
 }
-
-/* --- Module Navigation Grid --- */
-.module-navigation {
-   margin-top: 50px;
-}
-
-.module-grid {
-   display: grid;
-   grid-template-columns: repeat(3, 1fr);
-   gap: 30px;
-}
-
-.module-group {
-   background-color: #f9fbfd;
-   padding: 25px;
-   border-left: 5px solid var(--color-accent); /* Accent Border */
-}
-
 .module-group h3 {
    color: var(--color-primary);
-   margin-top: 0;
-   padding-bottom: 5px;
-   margin-bottom: 20px;
    font-size: 1.4em;
    font-weight: 600;
+   margin-top: 0;
+   padding: 5px 0; 
+   margin-bottom: 20px;
+   border-bottom: 1px solid transparent; 
+}
+.module-group h3:hover {
+    background-color: #e6e9ee; 
+    border-bottom: 1px solid #e0e0e0;
 }
 
-.module-group h3 .icon {
+.collapsible-subheader {
+   font-size: 1.1em;
+   font-weight: 600;
+   color: #004d99; 
+   padding: 8px 5px;
+   margin: 10px 0 5px 0;
+   border-bottom: 1px solid #e9ecef;
+}
+.collapsible-subheader:hover {
+    background-color: #e6e9ee; 
+}
+
+.module-group h3 .group-icon {
    font-size: 1.2em;
-   margin-right: 8px;
+   margin-right: 12px;
    color: var(--color-accent);
 }
 
+.collapsible-header .toggle-arrow, 
+.collapsible-subheader .toggle-arrow {
+   font-size: 1.2em;
+   color: var(--color-accent);
+   margin-left: auto;
+   margin-right: 5px;
+   transition: transform 0.3s ease;
+}
+
+.tool-links-container.hidden, 
+.sub-tool-links-container.hidden {
+   display: none;
+}
+
+
+/* --- Content Area (Right Side) --- */
+.content-area {
+   flex-grow: 1; 
+   padding: 20px 30px;
+   display: flex;
+   flex-direction: column; 
+}
+
+#tool-iframe {
+   width: 100%;
+   flex-grow: 1; 
+   border: none;
+   background-color: white;
+}
+
+/* --- Footer Styling --- */
+.footer {
+   background-color: #e9ecef;
+   color: #6c757d; 
+   text-align: center;
+   padding: 15px 0;
+   font-size: 0.85em;
+   border-top: 1px solid #dee2e6;
+   margin-top: 0; 
+   flex-shrink: 0; 
+}
+
+/* --- Breadcrumb Styling --- */
+.breadcrumb-container {
+   padding: 15px 0;
+   margin-bottom: 20px;
+   border-bottom: 1px solid #e0e0e0;
+   font-size: 0.95em;
+   color: #6c757d;
+}
+
+.breadcrumb-label {
+   font-weight: 600;
+   color: var(--color-primary);
+   margin-right: 5px;
+}
+#breadcrumb-path .separator {
+   margin: 0 8px;
+   color: #adb5bd;
+}
+
+/* Tool Link Styling */
 .tool-link {
    display: block;
    padding: 12px 15px;
@@ -388,7 +269,7 @@ h2 {
 }
 
 .tool-link.tool-highlight {
-   background-color: #fffaeb; /* Light yellow background for key tools */
+   background-color: #fffaeb;
    border: 1px solid var(--color-accent);
    color: #333;
    font-weight: 600;
@@ -397,24 +278,31 @@ h2 {
 .tool-link.tool-highlight:hover {
    background-color: #ffefc4;
 }
-/* --- Footer Styling --- */
-.footer {
-   background-color: #e9ecef; /* Light gray background */
-   color: #6c757d; /* Muted text color */
-   text-align: center;
-   padding: 15px 0;
-   font-size: 0.85em;
-   border-top: 1px solid #dee2e6;
-   margin-top: 30px; /* Space between content and footer */
+/* --- NEW LOGO STYLING --- */
+.header-left {
+   display: flex; /* Aligns the logo and H1 horizontally */
+   align-items: center; /* Vertically centers the items */
 }
 
-/* --- Logo Link Styling (to ensure logo remains visible and clickable) --- */
-.logo-link {
-   display: inline-block;
-   line-height: 0; /* Ensures the link doesn't add extra vertical space */
-   transition: opacity 0.2s;
+.logo-container {
+   /* Defines the space for the logo */
+   margin-right: 20px; 
+   height: 45px; /* Fixed container height */
+   display: flex;
+   align-items: center;
+   justify-content: center;
 }
 
-.logo-link:hover {
-   opacity: 0.8;
+
+.company-logo {
+   /* Constraints for the actual image */
+   max-height: 45px; /* Size the logo */
+   width: auto;
+   display: block; /* Removes any baseline spacing */
+   /* Removed: background-color: white; */ 
+   /* Removed: padding: 5px; */ 
+   border-radius: 4px; /* Optional: Keep if you like */
 }
+
+
+/* --- END NEW LOGO STYLING --- */
