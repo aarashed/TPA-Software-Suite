@@ -6,6 +6,7 @@
    <title>TPA Software Suite - Central Dashboard</title>
    <link rel="icon" type="image/png" href="favicon.ico">
    <link rel="stylesheet" href="dashboard.css">
+   <script src="tpa_menu_filter.js"></script>
    </head>
 <body>
 
@@ -19,101 +20,110 @@
                    </a>
                </div>
                <h1>TPA Compliance & Administration Dashboard</h1>
+               
+               <button id="reset-dashboard-btn" title="Reset Dashboard View" onclick="resetDashboard()">
+                   <span style="font-size: 1.3em;">🔄</span>
+               </button>
+
            </div>
            <div class="user-info">Welcome, Lead Analyst | Plan: XYZ Company</div>
        </header>
 
-        <div class="main-content-wrapper">
+       <div id="main-content-wrapper" class="main-content-wrapper">
             
-           
-           <aside class="sidebar-menu" > 
-    <h2> 
-    <span class="group-icon">🏠 </span> 
-    <span>TPA Modules</span> <span class="sidebar-toggle-button" onclick="window.parent.toggleSidebar(this);">«</span>
-     </h2>
-    <div class="module-grid-sidebar">
-    
-                   <div class="module-group">
-                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
-                           <span class="group-icon">✅</span> Annual Compliance
-                           <span class="toggle-arrow">▼</span>
-                       </h3>
-                       
-                       <div class="tool-links-container">
-                           <a href="ADP_ACP NonDiscrimination Test and Correction Calculator/adp_acp_calculator.html" class="tool-link" onclick="loadTool(this); return false;"> ADP/ACP NDT & Correction</a>
-                           <a href="401(a)(4) Rate Group Allocation Tester/rate_group_tester.html" class="tool-link" onclick="loadTool(this); return false;"> 401(a)(4) Rate Group Tester</a>
-                           <a href="Controlled_Affiliated Service Group Tester/controlled_group_tester.html" class="tool-link" onclick="loadTool(this); return false;"> Controlled Group/ASG Tester</a>
-                           <a href="Automated Top-Heavy Minimum Contribution Report/top_heavy_report.html" class="tool-link" onclick="loadTool(this); return false;"> Top-Heavy Minimum Report</a>
-                           </div>
-                   </div>
-                   <div class="module-group">
-                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
-                           <span class="group-icon">⚙️</span> Limits, Correction & Planning
-                           <span class="toggle-arrow">▼</span>
-                       </h3>
-                       
-                       <div class="tool-links-container">
-                           
-                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
-                               Limits & Planning <span class="toggle-arrow">▼</span>
-                           </h4>
-                           <div class="sub-tool-links-container">
-                               <a href="402(g)_Excess Deferral Refund Calculator/402g_refund_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> 402(g) Deferral Limit Check </a>
-                               <a href="415(c) annual additions excess allocation calculator/415c_excess_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> 415(c) Annual Additions Check </a>
-                               <a href="415(c) Maximum Profit Sharing Calculator/max_ps_calculator.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Max Profit Sharing Planner </a>
-                           </div>
+            <aside id="sidebar" class="sidebar-menu"> 
+                <h2 class="menu-title"> 
+                    <span class="group-icon">🏠 </span> 
+                    <span>TPA Modules</span> 
+                    <button class="sidebar-toggle-btn" onclick="toggleSidebar()">«</button>
+                </h2>
 
-                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
-                               Correction Workflow <span class="toggle-arrow">▶</span>
-                           </h4>
-                           <div class="sub-tool-links-container hidden">
-                               <a href="415(c) correction impact analyzer/415c_analyzer.html" class="tool-link"onclick="loadTool(this); return false;"> 415(c) Correction Impact Analyzer</a>
-                               <a href="Simple Nondiscrimination Test (ADP_ACP) Risk Checker/ndt_risk_checker.html" class="tool-link"onclick="loadTool(this); return false;"> ADP/ACP Simple Risk Checker</a>
-                               <a href="Plan Health Snapshot Generator/plan_health_snapshot.html" class="tool-link"onclick="loadTool(this); return false;"> 401k Plan Health Snapshot</a>
-                               <a href="Top Heavy Minimum Contribution Calculator/top_heavy_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Top-Heavy Contribution Calculator</a>
-                               <a href="Required Minimum Distribution(RMD) Calculator/rmd_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Required Minimum Distribution (RMD) </a>
-                           </div>
-                       </div>
-                  </div>     
-                
-                <div class="module-group">
-                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
-                           <span class="group-icon">📑</span> Data Integrity, Admin & Utilities
-                           <span class="toggle-arrow">▼</span>
-                       </h3>
-                       
-                       <div class="tool-links-container">
-                           
-                           
-                                 <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
-                               Data Integrity & Admin <span class="toggle-arrow">▼</span>
-                           </h4>
-                           <div class="sub-tool-links-container">
-                               <a href="Plan Compensation Consistancy Validator/comp_validator.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Plan Compensation Validator </a>
-                               <a href="Plan health and Fee Analyzer_Fiduciary Scorecard/plan_analyzer.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Fiduciary Health & Fee Analyzer </a>
-                               <a href="Participant Loan and Hardship Management/loan_manager.html" class="tool-link"onclick="loadTool(this); return false;"> Participant Loan & Hardship Manager </a>
-                               <a href="401k Loan Amortization Schedule Calculator/loan_amortization_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Participant Loan Amortization </a>
-                               <a href="Fund Fee Comparison/fee_comparison.html" class="tool-link"onclick="loadTool(this); return false;"> Fund Fee Comparison </a>
-                               
-                           </div>
+                <div class="search-container">
+                    <input type="text" id="menu-search-input" placeholder="Search modules..." onkeyup="filterModules()">
+                </div>
 
-                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
-                               Utility Calculation Suite <span class="toggle-arrow">▶</span>
-                           </h4>
-                           <div class="sub-tool-links-container hidden">
-                               <a href="Am I on Track/retirement_checkup.html" class="tool-link"onclick="loadTool(this); return false;"> Eligibility Determination Tool </a>
-                               <a href="Plan Vesting Eligibility Estimator/eligibility_estimator.html" class="tool-link"onclick="loadTool(this); return false;"> Vesting Schedule Calculator </a>
-                               <a href="Simple Compaund Interest Visualizer/compounding_visualizer.html" class="tool-link"onclick="loadTool(this); return false;"> Comp Definition Application </a>
-                               <a href="Employer Match Calculator/match_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Safe Harbor Match Calculator </a>
-                               <a href="Secure 2.0 Tax Credit Estimator/secure2_credit.html" class="tool-link"onclick="loadTool(this); return false;"> 2.0 Tax Credit Estimator </a>
-                               <a href="loan_withdrawal calculator/Loan_withdrawal.html" class="tool-link"onclick="loadTool(this); return false;"> Loan Withdrawal Calculator</a>
-                               <a href="Max 401k Contribution Calculator/max_contribution.html" class="tool-link"onclick="loadTool(this); return false;"> Max 401k Contribution Calculator </a>
-                          </div>
-                   </div>
-                   
-            </div>
+                <div class="module-grid-sidebar">
                 
-           </aside>
+                    <div class="module-group">
+                        <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                            <span class="group-icon">📈</span> Annual Compliance
+                            <span class="toggle-arrow">▼</span>
+                        </h3>
+                        
+                        <div class="tool-links-container">
+                            <a href="ADP_ACP NonDiscrimination Test and Correction Calculator/adp_acp_calculator.html" class="tool-link" onclick="loadTool(this); return false;" title="Calculates and corrects results for the Actual Deferral Percentage (ADP) and Actual Contribution Percentage (ACP) tests."> ADP/ACP NDT & Correction</a>
+                            <a href="401(a)(4) Rate Group Allocation Tester/rate_group_tester.html" class="tool-link" onclick="loadTool(this); return false;" title="Analyzes highly compensated employees (HCEs) benefiting in rate groups for 401(a)(4) non-discrimination compliance."> 401(a)(4) Rate Group Tester</a>
+                            <a href="Controlled_Affiliated Service Group Tester/controlled_group_tester.html" class="tool-link" onclick="loadTool(this); return false;" title="Determines if multiple entities must be aggregated for coverage, testing, and limit purposes under 414(b), (c), (m), or (o)."> Controlled Group/ASG Tester</a>
+                            <a href="Automated Top-Heavy Minimum Contribution Report/top_heavy_report.html" class="tool-link" onclick="loadTool(this); return false;" title="Generates the required report detailing employees and minimum contribution amounts for top-heavy plans."> Top-Heavy Minimum Report</a>
+                        </div>
+                    </div>
+
+                    <div class="module-group">
+                         <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                            <span class="group-icon">🛑</span> Limits, Correction & Planning
+                            <span class="toggle-arrow">▼</span>
+                        </h3>
+                        
+                        <div class="tool-links-container">
+                            
+                            <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                                Limits & Planning <span class="toggle-arrow">▼</span>
+                            </h4>
+                            <div class="sub-tool-links-container">
+                                <a href="402(g)_Excess Deferral Refund Calculator/402g_refund_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Checks if deferrals exceed the current IRC §402(g) limit and calculates the required refund."> 402(g) Deferral Limit Check </a>
+                                <a href="415(c) annual additions excess allocation calculator/415c_excess_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Analyzes if total annual additions (employer/employee) exceeded the limit and calculates the excess allocation for correction."> 415(c) Annual Additions Check </a>
+                                <a href="415(c) Maximum Profit Sharing Calculator/max_ps_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Calculates the maximum possible profit sharing contribution based on compensation and the 415(c) limit."> Max Profit Sharing Planner </a>
+                            </div>
+
+                            <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                                Correction Workflow <span class="toggle-arrow">▶</span>
+                            </h4>
+                            <div class="sub-tool-links-container hidden">
+                                <a href="415(c) correction impact analyzer/415c_analyzer.html" class="tool-link"onclick="loadTool(this); return false;" title="Models the financial impact of various correction methods (e.g., forfeiture, reduction) for 415(c) excess."> 415(c) Correction Impact Analyzer</a>
+                                <a href="Simple Nondiscrimination Test (ADP_ACP) Risk Checker/ndt_risk_checker.html" class="tool-link"onclick="loadTool(this); return false;" title="Provides a quick, high-level analysis of ADP/ACP test failure risk based on demographics."> ADP/ACP Simple Risk Checker</a>
+                                <a href="Plan Health Snapshot Generator/plan_health_snapshot.html" class="tool-link"onclick="loadTool(this); return false;" title="Generates a summary report of key compliance indicators, participation rates, and potential risks."> 401k Plan Health Snapshot</a>
+                                <a href="Top Heavy Minimum Contribution Calculator/top_heavy_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Calculates the exact minimum contribution required for each non-key employee in a top-heavy plan year."> Top-Heavy Contribution Calculator</a>
+                                <a href="Required Minimum Distribution(RMD) Calculator/rmd_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Calculates the Required Minimum Distribution (RMD) amount for eligible participants based on age and account balance."> Required Minimum Distribution (RMD) </a>
+                            </div>
+                        </div>
+                    </div>     
+                    
+                    <div class="module-group">
+                        <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                            <span class="group-icon">🛡️</span> Data Integrity, Admin & Utilities
+                            <span class="toggle-arrow">▼</span>
+                        </h3>
+                        
+                        <div class="tool-links-container">
+                            
+                            <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                                Data Integrity & Admin <span class="toggle-arrow">▼</span>
+                            </h4>
+                            <div class="sub-tool-links-container">
+                                <a href="Plan Compensation Consistancy Validator/comp_validator.html" class="tool-link"onclick="loadTool(this); return false;" title="Checks employee data for inconsistencies in compensation definition and application across payroll periods."> Plan Compensation Validator </a>
+                                <a href="Plan health and Fee Analyzer_Fiduciary Scorecard/plan_analyzer.html" class="tool-link"onclick="loadTool(this); return false;" title="Analyzes plan fees against industry benchmarks and generates a fiduciary risk score card."> Fiduciary Health & Fee Analyzer </a>
+                                <a href="Participant Loan and Hardship Management/loan_manager.html" class="tool-link"onclick="loadTool(this); return false;" title="Tool for tracking, processing, and monitoring participant loans and hardship withdrawal applications."> Participant Loan & Hardship Manager </a>
+                                <a href="401k Loan Amortization Schedule Calculator/loan_amortization_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Generates a detailed amortization schedule for new or existing participant loans."> Participant Loan Amortization </a>
+                                <a href="Fund Fee Comparison/fee_comparison.html" class="tool-link"onclick="loadTool(this); return false;" title="Compares fees (ER, expense ratio) across selected investment funds."> Fund Fee Comparison </a>
+                            </div>
+
+                            <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                                Utility Calculation Suite <span class="toggle-arrow">▶</span>
+                            </h4>
+                            <div class="sub-tool-links-container hidden">
+                                <a href="Am I on Track/retirement_checkup.html" class="tool-link"onclick="loadTool(this); return false;" title="Determines if an employee meets plan service requirements for eligibility."> Eligibility Determination Tool </a>
+                                <a href="Plan Vesting Eligibility Estimator/eligibility_estimator.html" class="tool-link"onclick="loadTool(this); return false;" title="Calculates the current vested percentage for a participant based on the plan's vesting schedule."> Vesting Schedule Calculator </a>
+                                <a href="Simple Compaund Interest Visualizer/compounding_visualizer.html" class="tool-link"onclick="loadTool(this); return false;" title="Demonstrates the impact of different compensation definitions on plan contributions."> Comp Definition Application </a>
+                                <a href="Employer Match Calculator/match_calculator.html" class="tool-link"onclick="loadTool(this); return false;" title="Calculates the required Safe Harbor match contribution for a participant based on deferrals."> Safe Harbor Match Calculator </a>
+                                <a href="Secure 2.0 Tax Credit Estimator/secure2_credit.html" class="tool-link"onclick="loadTool(this); return false;" title="Estimates the tax credit available to small businesses under the SECURE Act 2.0."> Secure 2.0 Tax Credit Estimator </a>
+                                <a href="loan_withdrawal calculator/Loan_withdrawal.html" class="tool-link"onclick="loadTool(this); return false;" title="A quick calculator for modeling potential loan or withdrawal amounts."> Loan Withdrawal Calculator</a>
+                                <a href="Max 401k Contribution Calculator/max_contribution.html" class="tool-link"onclick="loadTool(this); return false;" title="Determines the absolute maximum an employee can contribute to a 401(k) plan for a given year."> Max 401k Contribution Calculator </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </aside>
 
            <main class="content-area">
                 <section class="breadcrumb-container" >
@@ -128,14 +138,11 @@
 
        </div>
        <footer class="footer">
-       © 2025 Software Home. All Rights Reserved. | Retirement Plan Solutions
+       © 2025 Software Home. All Rights Reserved. | Your Trusted TPA Software Partner. 
    </footer>
    </div>
 
-
-   
-
    <script src="dashboard.js"></script>
- </div>
+<script src="tpa_menu_filter.js"></script>
 </body>
 </html>
