@@ -1,11 +1,15 @@
 /* --- Global & Base Styling --- */
 :root {
-   --color-primary: #003366; 
-   --color-accent: #ff9900; 
-   --color-success: #28a745;
-   --color-warning: #ffc107;
-   --color-danger: #dc3545;
-   --color-info: #007bff; 
+   /* NEW SYNCHRONIZED THEME COLORS */
+   --color-primary: #1A5276;     /* Dark Blue/Teal (Professional Main Color for Header/Headings) */
+   --color-accent: #FF9900;      /* Vibrant Orange (Eye-catching highlight) */
+   --color-secondary-bg: #f4f7fa; /* Very Light Grey/Blue (Off-white background for body) */
+   --color-link-hover: #E8F0F7;  /* Soft Blue for sidebar link hover */
+   --color-success: #28a745;     /* Standard Success Green */
+   --color-warning: #ffc107;     /* Standard Warning Yellow */
+   --color-danger: #dc3545;      /* Standard Danger Red */
+   --color-info: #007bff;        /* Standard Info Blue */
+   --color-border-light: #e0e0e0; /* Clean light border */
 }
 
 html, body {
@@ -13,7 +17,7 @@ html, body {
 }
 body {
    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-   background-color: #f4f7fa;
+   background-color: var(--color-secondary-bg); /* Use new light background */
    color: #333;
    margin: 0;
    padding: 0;
@@ -32,210 +36,321 @@ body {
    display: flex;
    flex-direction: column;
    flex-grow: 1; 
+   position: relative; 
 }
 
 .main-content-wrapper {
    display: flex;
-   flex-grow: 1; /* Allows the wrapper to expand vertically */
+   flex-grow: 1; 
    min-height: calc(100vh - 100px); 
+   position: relative; 
 }
 
 /* --- Header Styling --- */
 .header {
    background-color: var(--color-primary);
    color: white;
-   padding: 15px 40px;
+   padding: 10px 30px; 
    display: flex;
-   align-items: center;
    justify-content: space-between;
-   border-bottom: 5px solid var(--color-accent); 
-   flex-shrink: 0; 
+   align-items: center;
+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+   display: flex; 
+   align-items: center; 
+}
+
+.logo-container {
+   width: 50px; 
+   height: 50px; 
+   margin-right: 15px;
+   overflow: hidden;
+   display: flex; 
+   align-items: center; 
+   justify-content: center; 
+}
+
+.company-logo {
+   max-width: 100%; 
+   max-height: 100%; 
+   width: auto;
+   height: auto;
+   object-fit: contain; 
 }
 
 .header h1 {
    margin: 0;
-   font-size: 1.7em;
-   font-weight: 300;
+   font-size: 1.6em;
+   font-weight: 500;
+   /* ENSURES SPACE BEFORE THE NEW RESET BUTTON */
+   margin-right: 15px; 
 }
+
+/* --- NEW RESET BUTTON STYLES --- */
+#reset-dashboard-btn {
+    background: none;
+    border: none;
+    color: white; /* Match the header text color */
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    background-color: transparent; 
+}
+
+#reset-dashboard-btn:hover {
+    /* Uses a slightly darker shade of the primary color for a clean hover effect */
+    background-color: #103a56; 
+}
+
+#reset-dashboard-btn span {
+    vertical-align: middle; 
+}
+/* --- END RESET BUTTON STYLES --- */
+
+
 .user-info {
-   font-size: 0.95em;
-   font-weight: 400;
-   opacity: 0.8;
+   font-size: 0.9em;
+   opacity: 0.9;
 }
 
-/* --- Sidebar Styling (Default OPEN State) --- */
+/* --- Sidebar Styling (Menu Container) --- */
 .sidebar-menu {
-   width: 300px; 
-   min-width: 300px; /* Important for the flex container to respect this size */
-   flex-shrink: 0; /* Prevents it from shrinking prematurely */
+   position: absolute; 
+   top: 0;
+   left: 0;
+   bottom: 0; 
+   
+   width: 280px; /* Default Open Width */
    background-color: #f8f9fa; 
-   padding: 30px 20px;
-   border-right: 1px solid #e0e0e0;
-   overflow-y: auto; 
-   transition: all 0.3s ease-in-out; /* Enable smooth transition */
+   border-right: 1px solid var(--color-border-light);
+   padding: 0; 
+   transition: width 0.3s ease;
+   overflow-y: auto;
+   z-index: 10; 
 }
 
-/* Sidebar H2 Styling (Default OPEN State) */
+/* Sidebar Header */
 .sidebar-menu h2 {
    color: var(--color-primary);
-   font-size: 1.6em;
-   margin-bottom: 20px;
-   padding-bottom: 5px;
-   border-bottom: 2px solid var(--color-accent); 
-   display: flex; /* IMPORTANT for aligning the icon, text, and button */
+   font-size: 1.2em;
+   font-weight: 600;
+   padding: 15px; 
+   margin: 0;
+   border-bottom: 1px solid var(--color-border-light);
+   display: flex;
    align-items: center;
    justify-content: space-between;
+   transition: all 0.3s ease; 
 }
 
-/* Sidebar Toggle Button (Default OPEN State) */
-.sidebar-toggle-button {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: var(--color-accent);
-    cursor: pointer;
-    margin-left: 10px;
-    padding: 0 5px;
-    line-height: 1; 
+.sidebar-menu h2 .group-icon {
+   font-size: 1.4em;
+   margin-right: 10px;
+   color: var(--color-accent);
 }
 
-/* === CRITICAL SIDEBAR COLLAPSED STATE FIX === */
-
-/* 1. Shrink the Sidebar */
-.main-content-wrapper.sidebar-collapsed .sidebar-menu {
-    width: 60px !important; 
-    min-width: 60px !important;
-    flex-basis: 60px !important; 
-    padding: 30px 5px !important; 
-    overflow: hidden; 
-    border-right: none;
+.sidebar-toggle-btn {
+   background: none;
+   border: 1px solid #ccc;
+   color: var(--color-primary);
+   cursor: pointer;
+   padding: 2px 8px;
+   border-radius: 4px;
+   font-size: 0.8em;
+   transition: background-color 0.2s;
+   margin-left: auto; 
 }
 
-/* 2. Hide H2 content (text/icon) and Center the Button */
+.sidebar-toggle-btn:hover {
+   background-color: #e0e0e0;
+}
+
+
+/* --- Sidebar Collapse Styles --- */
+.main-content-wrapper.sidebar-collapsed #sidebar {
+   width: 50px; /* Collapsed Width */
+   overflow: visible; 
+}
+
+.main-content-wrapper.sidebar-collapsed .search-container,
+.main-content-wrapper.sidebar-collapsed .module-grid-sidebar {
+    display: none; 
+}
+
 .main-content-wrapper.sidebar-collapsed .sidebar-menu h2 {
-    /* Set H2 to flex again for centering, but ensure its children are small */
+    width: 50px; 
+    padding: 15px 5px 15px 5px; 
     justify-content: center; 
-    /* The border-bottom from the open state must be hidden */
-    border-bottom: none !important;
-    padding-bottom: 0 !important;
-    margin-bottom: 30px !important; /* Add space below the arrow */
 }
 
-/* 3. Ensure ONLY the Toggle Button is Visible and Large */
-.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 .sidebar-toggle-button {
-    font-size: 2em; /* Make the arrow large */
-    margin: 0;
-    padding: 0;
-    line-height: 1; 
-    order: 1; /* Ensure it is the first or only element visually */
-    display: block;
-}
-/* This is a secondary way to ensure the home icon is hidden, the JS also handles this */
 .main-content-wrapper.sidebar-collapsed .sidebar-menu h2 .group-icon,
-.main-content-wrapper.sidebar-collapsed .sidebar-menu h2 span:not(.group-icon):not(.sidebar-toggle-button) {
+.main-content-wrapper.sidebar-collapsed .sidebar-menu h2.menu-title span:nth-child(2) {
+    display: none;
+}
+
+.main-content-wrapper.sidebar-collapsed .sidebar-toggle-btn {
+    margin: 0; 
+}
+
+/* --- Search Bar Styling --- */
+.search-container {
+    padding: 10px 20px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+#menu-search-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.9em;
+    transition: border-color 0.3s;
+}
+
+#menu-search-input:focus {
+    border-color: var(--color-accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.25);
+}
+
+/* --- Module Group Styling (L1, L2, L3) --- */
+.module-grid-sidebar {
+    padding-bottom: 20px;
+}
+
+.module-group {
+    border-bottom: 1px solid #eee;
+}
+
+.collapsible-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 12px 20px;
+   cursor: pointer;
+   margin: 0;
+   font-size: 1em;
+   font-weight: 600;
+   color: var(--color-primary);
+   background-color: #e9ecef; 
+   user-select: none;
+   transition: background-color 0.2s;
+   border-top: 1px solid #f0f0f0;
+}
+
+.collapsible-header:hover {
+   background-color: #dee2e6;
+}
+
+.collapsible-header .group-icon {
+    margin-right: 10px;
+    font-size: 1.1em;
+    color: #495057; 
+}
+
+/* --- L2 and L3 Container Hiding/Showing Fix --- */
+.tool-links-container, .sub-tool-links-container {
+   max-height: 1000px; 
+   padding: 0;
+   overflow: hidden;
+   transition: max-height 0.3s ease-in-out;
+   background-color: #ffffff; 
+}
+
+.tool-links-container.hidden, .sub-tool-links-container.hidden {
+   max-height: 0 !important;
+}
+
+/* H4 (Sub-Group Header - L2) */
+.collapsible-subheader {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 8px 20px 8px 30px; 
+   cursor: pointer;
+   margin: 0;
+   font-size: 0.95em;
+   font-weight: 500;
+   color: #343a40;
+   user-select: none;
+   transition: background-color 0.2s;
+   border-top: 1px solid #f8f9fa;
+}
+
+.collapsible-subheader:hover {
+   background-color: var(--color-link-hover);
+}
+
+.toggle-arrow {
+   font-size: 0.7em;
+   margin-left: 10px;
+   transition: transform 0.2s ease;
+}
+
+.tool-link {
+   display: block;
+   padding: 8px 20px 8px 45px; 
+   margin: 0;
+   background-color: transparent;
+   color: #495057;
+   text-decoration: none;
+   transition: background-color 0.2s, color 0.2s;
+   font-weight: 400;
+   font-size: 0.9em;
+}
+
+.tool-link:hover {
+   background-color: var(--color-link-hover);
+   color: var(--color-primary);
+}
+
+.tool-link.tool-highlight {
+    background-color: var(--color-accent);
+    color: #fff;
+    font-weight: 600;
+}
+
+.tool-link.tool-highlight:hover {
+    background-color: #e88d00;
+    color: #fff;
+}
+
+.filtered-hidden {
     display: none !important;
 }
 
-/* 4. Hide all Module Content (links, headers, arrows) */
-.main-content-wrapper.sidebar-collapsed .module-grid-sidebar {
-    display: none !important; 
-}
-
-/* 5. Content Area Expansion */
-.main-content-wrapper.sidebar-collapsed .content-area {
-    flex-grow: 1;
-    padding-left: 20px;
-}
-/* =================================== */
-
-
-/* --- Menu Toggling & Arrow Styling (H3/H4) --- */
-.module-group h3, .collapsible-subheader {
-   cursor: pointer;
-   user-select: none;
-   display: flex;
-   align-items: center;
-   transition: background-color 0.2s; 
-}
-.module-group h3 {
-   color: var(--color-primary);
-   font-size: 1.4em;
-   font-weight: 600;
-   margin-top: 0;
-   padding: 5px 0; 
-   margin-bottom: 20px;
-   border-bottom: 1px solid transparent; 
-}
-.module-group h3:hover {
-    background-color: #e6e9ee; 
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.collapsible-subheader {
-   font-size: 1.1em;
-   font-weight: 600;
-   color: #004d99; 
-   padding: 8px 5px;
-   margin: 10px 0 5px 0;
-   border-bottom: 1px solid #e9ecef;
-}
-.collapsible-subheader:hover {
-    background-color: #e6e9ee; 
-}
-
-.module-group h3 .group-icon {
-   font-size: 1.2em;
-   margin-right: 12px;
-   color: var(--color-accent);
-}
-
-.collapsible-header .toggle-arrow, 
-.collapsible-subheader .toggle-arrow {
-   font-size: 1.2em;
-   color: var(--color-accent);
-   margin-left: auto;
-   margin-right: 5px;
-   transition: transform 0.3s ease;
-}
-
-.tool-links-container.hidden, 
-.sub-tool-links-container.hidden {
-   display: none;
-}
-
-
-/* --- Content Area (Right Side) --- */
+/* --- Content Area and Breadcrumb Styling --- */
 .content-area {
-   flex-grow: 1; 
-   padding: 20px 30px;
-   display: flex;
-   flex-direction: column; 
-}
-
-#tool-iframe {
+   flex-grow: 1;
+   padding: 0;
+   
    width: 100%;
-   flex-grow: 1; 
-   border: none;
-   background-color: white;
+   box-sizing: border-box; 
+
+   /* DEFAULT STATE: Wide sidebar (280px) means a large left padding */
+   padding-left: 280px; 
+   transition: padding-left 0.3s ease;
+   display: flex;
+   flex-direction: column;
 }
 
-/* --- Footer Styling --- */
-.footer {
-   background-color: #e9ecef;
-   color: #6c757d; 
-   text-align: center;
-   padding: 15px 0;
-   font-size: 0.85em;
-   border-top: 1px solid #dee2e6;
-   margin-top: 0; 
-   flex-shrink: 0; 
+/* COLLAPSED STATE: Content area widens by shrinking padding-left */
+.main-content-wrapper.sidebar-collapsed .content-area {
+   padding-left: 50px;
 }
 
-/* --- Breadcrumb Styling --- */
+
 .breadcrumb-container {
-   padding: 15px 0;
-   margin-bottom: 20px;
-   border-bottom: 1px solid #e0e0e0;
-   font-size: 0.95em;
+   padding: 10px 30px;
+   background-color: #ffffff;
+   border-bottom: 1px solid var(--color-border-light);
+   font-size: 0.9em;
    color: #6c757d;
 }
 
@@ -249,60 +364,19 @@ body {
    color: #adb5bd;
 }
 
-/* Tool Link Styling */
-.tool-link {
-   display: block;
-   padding: 12px 15px;
-   margin-bottom: 10px;
-   background-color: #f0f2f5;
-   color: var(--color-primary);
-   text-decoration: none;
-   border-radius: 4px;
-   transition: background-color 0.2s, border-color 0.2s;
-   font-weight: 500;
-   border: 1px solid #e0e0e0;
+/* --- Iframe Styling --- */
+#tool-iframe {
+   flex-grow: 1;
+   width: 100%;
+   border: none;
 }
 
-.tool-link:hover {
-   background-color: #e6e9ee;
-   border-color: var(--color-accent);
+/* --- Footer Styling --- */
+.footer {
+   background-color: var(--color-primary);
+   color: #ccc;
+   text-align: center;
+   padding: 10px;
+   font-size: 0.8em;
+   flex-shrink: 0;
 }
-
-.tool-link.tool-highlight {
-   background-color: #fffaeb;
-   border: 1px solid var(--color-accent);
-   color: #333;
-   font-weight: 600;
-}
-
-.tool-link.tool-highlight:hover {
-   background-color: #ffefc4;
-}
-/* --- NEW LOGO STYLING --- */
-.header-left {
-   display: flex; /* Aligns the logo and H1 horizontally */
-   align-items: center; /* Vertically centers the items */
-}
-
-.logo-container {
-   /* Defines the space for the logo */
-   margin-right: 20px; 
-   height: 45px; /* Fixed container height */
-   display: flex;
-   align-items: center;
-   justify-content: center;
-}
-
-
-.company-logo {
-   /* Constraints for the actual image */
-   max-height: 45px; /* Size the logo */
-   width: auto;
-   display: block; /* Removes any baseline spacing */
-   /* Removed: background-color: white; */ 
-   /* Removed: padding: 5px; */ 
-   border-radius: 4px; /* Optional: Keep if you like */
-}
-
-
-/* --- END NEW LOGO STYLING --- */

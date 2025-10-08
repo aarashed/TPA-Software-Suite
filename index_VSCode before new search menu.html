@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>TPA Software Suite - Central Dashboard</title>
+   <link rel="icon" type="image/png" href="favicon.ico">
+   <link rel="stylesheet" href="dashboard.css">
+   <script src="tpa_menu_filter.js"></script>
+   </head>
+<body>
+
+   <div class="dashboard-container">
+       
+    <header class="header">
+           <div class="header-left">
+               <div class="logo-container">
+                   <a href="https://software-home.net/index.html" target="_blank">
+                       <img src="company_logo.png" alt="Software Home" class="company-logo">
+                   </a>
+               </div>
+               <h1>TPA Compliance & Administration Dashboard</h1>
+           </div>
+           <div class="user-info">Welcome, Lead Analyst | Plan: XYZ Company</div>
+       </header>
+
+        <div class="main-content-wrapper">
+         <div id="tpa-menu-container">
+    <h2 class="menu-title">TPA Modules</h2>
+    
+    <!-- Search/Filter Input -->
+    <div class="search-container">
+        <input type="text" id="menu-search-input" placeholder="Search modules..." onkeyup="filterModules()">
+    </div>
+
+    <!-- Module List (The elements that will be filtered) -->
+    <ul id="tpa-module-list" class="module-list">
+        <!-- Module links must have a class like 'module-item' for filtering -->
+        <li class="module-item" data-search-term="adp acp discrimination testing correction">
+            <a href="adp_acp_calculator.html">
+                <span class="icon">📈</span> ADP/ACP NDT & Correction
+            </a>
+        </li>
+        <li class="module-item" data-search-term="vesting profit sharing match contribution">
+            <a href="#">
+                <span class="icon">💰</span> Vesting Schedule & Projections
+            </a>
+        </li>
+        <li class="module-item" data-search-term="top heavy determination testing ratio">
+            <a href="#">
+                <span class="icon">⚖️</span> Top Heavy Determination
+            </a>
+        </li>
+        <li class="module-item" data-search-term="415 annual additions limit">
+            <a href="#">
+                <span class="icon">🛑</span> 415 Limit Check
+            </a>
+        </li>
+        <li class="module-item" data-search-term="safe harbor contribution calculator">
+            <a href="#">
+                <span class="icon">🛡️</span> Safe Harbor Calculator
+            </a>
+        </li>
+        <li class="module-item" data-search-term="new comp cross testing rate group">
+            <a href="#">
+                <span class="icon">🆕</span> New Comp & Cross-Testing
+            </a>
+        </li>
+    </ul>
+</div>
+
+<style>
+/* Basic styling for the menu and search functionality */
+#tpa-menu-container {
+    padding: 20px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 300px;
+    font-family: Arial, sans-serif;
+}
+
+.menu-title {
+    color: #004d99;
+    font-size: 1.5em;
+    margin-top: 0;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+/* Search Bar Styling */
+.search-container {
+    margin-bottom: 20px;
+}
+
+#menu-search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+#menu-search-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Module List Styling */
+.module-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.module-item {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+}
+
+.module-item a {
+    display: flex;
+    align-items: center;
+    padding: 12px 10px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+}
+
+.module-item:hover {
+    background-color: #e6f0ff;
+}
+
+.module-item .icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.module-item:last-child {
+    border-bottom: none;
+}
+
+/* Hide module items that do not match the filter */
+.module-item.hidden {
+    display: none;
+}
+</style>
+
+
+   
+           
+           <aside class="sidebar-menu" > 
+    <h2> 
+    <span class="group-icon">🏠 </span> 
+    <span>TPA Modules</span> <span class="sidebar-toggle-button" onclick="window.parent.toggleSidebar(this);">«</span>
+     </h2>
+    <div class="module-grid-sidebar">
+    
+                   <div class="module-group">
+                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                           <span class="group-icon">✅</span> Annual Compliance
+                           <span class="toggle-arrow">▼</span>
+                       </h3>
+                       
+                       <div class="tool-links-container">
+                           <a href="ADP_ACP NonDiscrimination Test and Correction Calculator/adp_acp_calculator.html" class="tool-link" onclick="loadTool(this); return false;"> ADP/ACP NDT & Correction</a>
+                           <a href="401(a)(4) Rate Group Allocation Tester/rate_group_tester.html" class="tool-link" onclick="loadTool(this); return false;"> 401(a)(4) Rate Group Tester</a>
+                           <a href="Controlled_Affiliated Service Group Tester/controlled_group_tester.html" class="tool-link" onclick="loadTool(this); return false;"> Controlled Group/ASG Tester</a>
+                           <a href="Automated Top-Heavy Minimum Contribution Report/top_heavy_report.html" class="tool-link" onclick="loadTool(this); return false;"> Top-Heavy Minimum Report</a>
+                           </div>
+                   </div>
+                   <div class="module-group">
+                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                           <span class="group-icon">⚙️</span> Limits, Correction & Planning
+                           <span class="toggle-arrow">▼</span>
+                       </h3>
+                       
+                       <div class="tool-links-container">
+                           
+                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                               Limits & Planning <span class="toggle-arrow">▼</span>
+                           </h4>
+                           <div class="sub-tool-links-container">
+                               <a href="402(g)_Excess Deferral Refund Calculator/402g_refund_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> 402(g) Deferral Limit Check </a>
+                               <a href="415(c) annual additions excess allocation calculator/415c_excess_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> 415(c) Annual Additions Check </a>
+                               <a href="415(c) Maximum Profit Sharing Calculator/max_ps_calculator.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Max Profit Sharing Planner </a>
+                           </div>
+
+                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                               Correction Workflow <span class="toggle-arrow">▶</span>
+                           </h4>
+                           <div class="sub-tool-links-container hidden">
+                               <a href="415(c) correction impact analyzer/415c_analyzer.html" class="tool-link"onclick="loadTool(this); return false;"> 415(c) Correction Impact Analyzer</a>
+                               <a href="Simple Nondiscrimination Test (ADP_ACP) Risk Checker/ndt_risk_checker.html" class="tool-link"onclick="loadTool(this); return false;"> ADP/ACP Simple Risk Checker</a>
+                               <a href="Plan Health Snapshot Generator/plan_health_snapshot.html" class="tool-link"onclick="loadTool(this); return false;"> 401k Plan Health Snapshot</a>
+                               <a href="Top Heavy Minimum Contribution Calculator/top_heavy_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Top-Heavy Contribution Calculator</a>
+                               <a href="Required Minimum Distribution(RMD) Calculator/rmd_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Required Minimum Distribution (RMD) </a>
+                           </div>
+                       </div>
+                  </div>     
+                
+                <div class="module-group">
+                       <h3 class="collapsible-header" onclick="toggleLinks(this);">
+                           <span class="group-icon">📑</span> Data Integrity, Admin & Utilities
+                           <span class="toggle-arrow">▼</span>
+                       </h3>
+                       
+                       <div class="tool-links-container">
+                           
+                           
+                                 <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                               Data Integrity & Admin <span class="toggle-arrow">▼</span>
+                           </h4>
+                           <div class="sub-tool-links-container">
+                               <a href="Plan Compensation Consistancy Validator/comp_validator.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Plan Compensation Validator </a>
+                               <a href="Plan health and Fee Analyzer_Fiduciary Scorecard/plan_analyzer.html" class="tool-link tool-highlight"onclick="loadTool(this); return false;"> Fiduciary Health & Fee Analyzer </a>
+                               <a href="Participant Loan and Hardship Management/loan_manager.html" class="tool-link"onclick="loadTool(this); return false;"> Participant Loan & Hardship Manager </a>
+                               <a href="401k Loan Amortization Schedule Calculator/loan_amortization_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Participant Loan Amortization </a>
+                               <a href="Fund Fee Comparison/fee_comparison.html" class="tool-link"onclick="loadTool(this); return false;"> Fund Fee Comparison </a>
+                               
+                           </div>
+
+                           <h4 class="collapsible-subheader" onclick="toggleLinks(this)">
+                               Utility Calculation Suite <span class="toggle-arrow">▶</span>
+                           </h4>
+                           <div class="sub-tool-links-container hidden">
+                               <a href="Am I on Track/retirement_checkup.html" class="tool-link"onclick="loadTool(this); return false;"> Eligibility Determination Tool </a>
+                               <a href="Plan Vesting Eligibility Estimator/eligibility_estimator.html" class="tool-link"onclick="loadTool(this); return false;"> Vesting Schedule Calculator </a>
+                               <a href="Simple Compaund Interest Visualizer/compounding_visualizer.html" class="tool-link"onclick="loadTool(this); return false;"> Comp Definition Application </a>
+                               <a href="Employer Match Calculator/match_calculator.html" class="tool-link"onclick="loadTool(this); return false;"> Safe Harbor Match Calculator </a>
+                               <a href="Secure 2.0 Tax Credit Estimator/secure2_credit.html" class="tool-link"onclick="loadTool(this); return false;"> 2.0 Tax Credit Estimator </a>
+                               <a href="loan_withdrawal calculator/Loan_withdrawal.html" class="tool-link"onclick="loadTool(this); return false;"> Loan Withdrawal Calculator</a>
+                               <a href="Max 401k Contribution Calculator/max_contribution.html" class="tool-link"onclick="loadTool(this); return false;"> Max 401k Contribution Calculator </a>
+                          </div>
+                   </div>
+                   
+            </div>
+                
+           </aside>
+
+           <main class="content-area">
+                <section class="breadcrumb-container" >
+                   
+                   <span class="breadcrumb-label">Current Location:</span>
+                   <span id="breadcrumb-path">Dashboard Home</span> 
+                </section>
+               
+               <iframe id="tool-iframe" src="dashboard_home.html" frameborder="0"></iframe>
+
+           </main>
+
+       </div>
+       <footer class="footer">
+       © 2025 Software Home. All Rights Reserved. | Retirement Plan Solutions
+   </footer>
+   </div>
+
+
+   
+
+   <script src="dashboard.js"></script>
+ </div>
+</body>
+</html>

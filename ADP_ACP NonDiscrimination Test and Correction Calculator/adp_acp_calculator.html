@@ -7,6 +7,7 @@
    <link rel="stylesheet" href="adp_acp_tester.css">
    
    <link rel="stylesheet" href="../iframe_content_styles.css"> 
+
    
 </head>
 <body>
@@ -90,8 +91,42 @@
        </div>
 
        <div id="error-message" class="error-message"></div>
+
+       <div class="card result-card" id="acpResults" style="display: none;">
+
+       </div>
+       <div class="card result-card" id="adpResults" style="display: none;">
+       </div>
+<!-- 
+       <table id="hceDataTable" class="data-grid-table">
+
+       </table>
+       <table id="adpCorrectionTable" class="correction-table">
+
+       </table>
+       
+       <!-- Your export button needs to be defined once -->
+       <div id="calculator-content"> 
+           <button id="export-button" class="btn btn-primary">
+               Export Results to PDF
+           </button>
+       </div>
    </div>
 
+   <!-- Script Includes (Must be at the end of the body) -->
    <script src="adp_acp_tester.js"></script>
+  
+   <!-- Ensure html2canvas is included for visual rendering -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+   
+   <!-- jsPDF Core (needed for document creation) -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+   
+   <!-- AutoTable is not strictly needed for the visual method, but won't hurt -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+   
+   <!-- Your reusable utility file -->
+   <script src="../pdf_export_utils.js"></script>
+
 </body>
 </html>

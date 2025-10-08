@@ -246,3 +246,22 @@ function displayResults(result, prefix, contributionType) {
        correctionBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #28a745; font-weight: bold;">No correction required. The test passed.</td></tr>`;
    }
 }
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const exportButton = document.getElementById('export-button');
+    
+    if (exportButton) {
+        exportButton.addEventListener('click', async () => {
+            
+            // Wait for the asynchronous PDF generation process to complete
+            await exportPageToPDF(
+                "ADP/ACP NDT & Correction", // Page Title
+                ["#adpResults", "#acpResults", "#hceDataTable", "#adpCorrectionTable", "#acpCorrectionTable"] // All elements to capture visually
+            );
+        });
+    }
+});
+
+
