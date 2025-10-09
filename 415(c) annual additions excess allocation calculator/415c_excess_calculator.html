@@ -12,10 +12,18 @@
    <div class="calculator-container">
        
        
-
        <h1>415(c) Annual Additions Excess Allocation Calculator</h1>
        <p class="description">Calculate the 415(c) limit and apply the IRS correction hierarchy (Refund/Forfeit) to eliminate the excess annual addition.</p>
 
+       <div class="result-box result-info" id="current-limits-display">
+           <p>Loading IRS limits...</p>
+       </div>
+
+       <div style="text-align: right; margin-bottom: 10px;">
+           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads current IRS limits from the central dashboard.">
+               Reload Config
+           </button>
+       </div>
        <div class="card input-card">
            <h2>Limit Calculation Inputs</h2>
            
@@ -25,24 +33,16 @@
                <small class="hint-text">The participant's compensation for the limitation year.</small>
            </div>
            
+           <h2>Annual Additions Inputs</h2>
+           
            <div class="input-group">
-               <label for="statutoryDollarLimit">Statutory 415(c) Dollar Limit ($)</label>
-               <input type="number" id="statutoryDollarLimit" value="70000" min="0" step="0.01">
-               <small class="hint-text">The IRS-adjusted dollar limit for the year (e.g., $70,000 for 2025).</small>
+               <label for="electiveDeferrals">Elective Deferrals (Pre-tax/Roth) ($)</label>
+               <input type="number" id="electiveDeferrals" value="23000" min="0" step="0.01">
            </div>
            
-           <hr>
-           
-           <h2>Actual Annual Additions (Contributions)</h2>
-           
            <div class="input-group">
-               <label for="electiveDeferrals">Elective Deferrals (Pre-Tax & Roth) ($)</label>
-               <input type="number" id="electiveDeferrals" value="23500" min="0" step="0.01">
-           </div>
-
-           <div class="input-group">
-               <label for="afterTaxContributions">After-Tax Employee Contributions (if plan allows) ($)</label>
-               <input type="number" id="afterTaxContributions" value="0" min="0" step="0.01">
+               <label for="afterTaxContributions">After-Tax Contributions ($)</label>
+               <input type="number" id="afterTaxContributions" value="5000" min="0" step="0.01">
            </div>
 
            <div class="input-group">

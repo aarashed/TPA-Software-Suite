@@ -5,16 +5,26 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>SECURE 2.0 Tax Credit Estimator</title>
    <link rel="stylesheet" href="secure2_credit.css">
-<link rel="stylesheet" href="../iframe_content_styles.css"> 
+   <link rel="stylesheet" href="../iframe_content_styles.css"> 
 </head>
 <body>
 
    <div class="calculator-container">
        
       
-
        <h1>SECURE 2.0 Tax Credit Estimator</h1>
        <p class="description">Estimate the potential tax savings for starting or joining a retirement plan.</p>
+
+       <div class="result-box result-info" id="current-limits-display">
+           <p>Loading SECURE 2.0 limits...</p>
+       </div>
+
+       <div style="text-align: right; margin-bottom: 10px;">
+           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads current SECURE 2.0 limits from the central dashboard.">
+               Reload Config
+           </button>
+       </div>
+
 
        <div class="card input-card">
            <h2>Business and Plan Details</h2>

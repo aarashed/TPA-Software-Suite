@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Controlled/Affiliated Group Tester (IRC 414)</title>
+   <link rel="stylesheet" href="controlled_group_tester.css">
+<link rel="stylesheet" href="../iframe_content_styles.css"> 
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+  
+           <h1>Controlled/Affiliated Group Tester</h1>
+           <p class="description">Determine if two or more entities must be treated as a single employer for plan testing purposes (IRC 414(b) & (c)).</p>
+    
+
+       <div class="card input-card">
+           <h2>Test Inputs: Entity Ownership</h2>
+           
+           <p class="section-title">Test 1: Parent-Subsidiary or Combined Group</p>
+           <div class="input-group">
+               <label for="parentSubsidiaryOwnership">Company A Ownership in Company B (%)</label>
+               <input type="number" id="parentSubsidiaryOwnership" value="0" min="0" max="100" step="1">
+               <small class="hint-text">If Company A owns 80% or more of Company B, a Parent-Subsidiary Group exists.</small>
+           </div>
+           
+           <hr>
+           
+           <p class="section-title">Test 2: Brother-Sister Group</p>
+           <p class="hint-text-large">Enter the ownership percentages held by the **Five or Fewer** common owners in both Company A and Company B.</p>
+           
+           <div id="ownerInputs">
+               </div>
+
+           <button onclick="addOwner()" class="btn-secondary">Add Common Owner</button>
+           
+           <hr>
+           
+           <div class="input-group">
+               <label for="asgServiceRevenue">Affiliated Service Group: Gross Service Revenue (%)</label>
+               <input type="number" id="asgServiceRevenue" value="0" min="0" max="100" step="1">
+               <small class="hint-text">Percentage of service revenue derived from a single group (e.g., medical, law). A high percentage may suggest an ASG (IRC 414(m)).</small>
+           </div>
+           
+           <button onclick="runControlledGroupTest()" class="btn-primary">Run Controlled Group Test</button>
+       </div>
+
+       <div class="card result-card" id="resultsSummary" style="display: none;">
+           <h2>Test Results & Conclusion</h2>
+           <div id="testResults">
+               </div>
+       </div>
+
+       <div id="error-message" class="error-message"></div>
+   </div>
+
+   <script src="controlled_group_tester.js"></script>
+</body>
+</html>

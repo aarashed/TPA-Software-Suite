@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>ADP/ACP Nondiscrimination Test & Correction Calculator</title>
+   <link rel="stylesheet" href="adp_acp_tester.css">
+   <link rel="stylesheet" href="../iframe_content_styles.css"> 
+</head>
+<body>
+
+   <div class="calculator-container">
+       
+      
+           <h1>ADP/ACP Nondiscrimination Test & Correction Calculator</h1>
+           <p class="description">Calculates the ADP/ACP test results and determines the required corrective distribution/refund for Highly Compensated Employees (HCEs).</p>
+       
+           <div class="result-box result-info" id="current-limits-display">
+               <p>Loading plan configuration...</p>
+           </div>
+           
+           <div style="text-align: right; margin-bottom: 10px;">
+               <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads plan rules from the central dashboard.">
+                   Reload Plan Config
+               </button>
+           </div>
+           <div class="card input-card">
+           <h2>Test Inputs</h2>
+           
+           <div class="input-group">
+               <label for="nhceAdp">NHCE Average Deferral Percentage (ADP) (%)</label>
+               <input type="number" id="nhceAdp" value="4.0" min="0" max="100" step="0.01">
+               <small class="hint-text">The calculated ADP for the Non-Highly Compensated Employee group.</small>
+           </div>
+           
+           <div class="input-group">
+               <label for="nhceAcp">NHCE Average Contribution Percentage (ACP) (%)</label>
+               <input type="number" id="nhceAcp" value="3.0" min="0" max="100" step="0.01">
+               <small class="hint-text">The calculated ACP for the Non-Highly Compensated Employee group (Match/After-Tax).</small>
+           </div>
+           
+       </div>
+       
+       <div class="card input-card">
+           <h2>Highly Compensated Employee (HCE) Data</h2>
+           <p class="description">Enter the details for each HCE to test their individual deferral and contribution rates.</p>
+
+           <table id="hceDataTable" class="data-grid-table">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>414(s) Comp ($)</th>
+                       <th>Deferrals ($)</th>
+                       <th>Match/After-Tax ($)</th>
+                       <th>Action</th>
+                   </tr>
+               </thead>
+               <tbody id="hceTableBody">
+                   </tbody>
+           </table>
+           <button onclick="addHCE()" class="btn-secondary btn-small" style="margin-top: 10px;">+ Add HCE</button>
+           <button onclick="clearHCEs()" class="btn-secondary btn-small" style="margin-top: 10px;">Clear All HCEs</button>
+           
+           <button id="calculateButton" class="btn-primary" style="margin-top: 20px;">Calculate ADP/ACP Test</button>
+       </div>
+
+       <div class="card result-card" id="adpResults" style="display: none;">
+           </div>
+
+       <div class="correction-card" id="adpCorrectionTable" style="display: none;">
+           <h3>ADP Correction Summary</h3>
+           <table class="data-grid-table">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>Pre-Correction ADP</th>
+                       <th>Refund ($)</th>
+                       <th>Post-Correction ADP</th>
+                   </tr>
+               </thead>
+               <tbody id="adpCorrectionBody"></tbody>
+           </table>
+       </div>
+
+       <div class="card result-card" id="acpResults" style="display: none;">
+           </div>
+
+       <div class="correction-card" id="acpCorrectionTable" style="display: none;">
+           <h3>ACP Correction Summary</h3>
+           <table class="data-grid-table">
+               <thead>
+                   <tr>
+                       <th>HCE</th>
+                       <th>Pre-Correction ACP</th>
+                       <th>Refund/Forfeit ($)</th>
+                       <th>Post-Correction ACP</th>
+                   </tr>
+               </thead>
+               <tbody id="acpCorrectionBody"></tbody>
+           </table>
+       </div>
+
+
+       <div id="error-message" class="error-message"></div>
+       
+       <div id="calculator-content"> 
+           <button id="export-button" class="btn btn-primary">
+               Export Results to PDF
+           </button>
+       </div>
+
+       <div id="pdf-loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center;">
+           <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2);">
+               <div class="spinner" style="border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #007bff; animation: spin 1s ease infinite; margin: 0 auto 15px;"></div>
+               <p style="font-weight: bold; color: #333;">Generating PDF Report...</p>
+               <p style="font-size: 0.9em; color: #666;">This may take a moment for large reports.</p>
+           </div>
+       </div>
+       <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+       </style>
+   </div>
+
+   <script src="adp_acp_tester.js"></script>
+  
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+   
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+   
+</body>
+</html>

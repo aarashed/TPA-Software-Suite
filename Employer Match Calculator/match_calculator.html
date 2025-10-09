@@ -5,23 +5,32 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>401(k) Employer Match Calculator</title>
    <link rel="stylesheet" href="match_calculator.css">
-<link rel="stylesheet" href="../iframe_content_styles.css"> 
+   <link rel="stylesheet" href="../iframe_content_styles.css"> 
 </head>
 <body>
 
    <div class="calculator-container">
        
-     
-
+       
        <h1>401(k) Employer Match Calculator</h1>
        <p class="description">Calculate the total amount of "free money" your employer contributes to your 401(k).</p>
 
+       <div class="result-box result-info" id="current-limits-display">
+           <p>Loading plan configuration...</p>
+       </div>
+
+       <div style="text-align: right; margin-bottom: 10px;">
+           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads plan rules from the central dashboard.">
+               Reload Plan Config
+           </button>
+       </div>
        <div class="card input-card">
            <h2>Your Details & Match Formula</h2>
            
            <div class="input-group">
                <label for="annualSalary">Your Annual Salary ($)</label>
                <input type="number" id="annualSalary" value="75000" min="1">
+               <small id="salary-hint" class="hint-text"></small>
            </div>
 
            <div class="input-group">

@@ -5,16 +5,25 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>402(g) Excess Deferral Refund Calculator</title>
    <link rel="stylesheet" href="402g_refund_calculator.css">
-<link rel="stylesheet" href="../iframe_content_styles.css"> 
+   <link rel="stylesheet" href="../iframe_content_styles.css"> 
 </head>
 <body>
 
    <div class="calculator-container">
        
        
-
        <h1>402(g) Excess Deferral Refund Calculator</h1>
        <p class="description">Calculate the required refund amount (Excess + Earnings) for a 402(g) failure to meet the April 15 deadline.</p>
+
+       <div class="result-box result-info" id="current-limits-display">
+           <p>Loading IRS 402(g) limit...</p>
+       </div>
+
+       <div style="text-align: right; margin-bottom: 10px;">
+           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads current IRS limits from the central dashboard.">
+               Reload IRS Limits
+           </button>
+       </div>
 
        <div class="card input-card">
            <h2>Correction Inputs</h2>
