@@ -1,0 +1,195 @@
+/* General styling */
+body {
+   font-family: 'Arial', sans-serif;
+   background-color: #f4f7fa;
+   color: #333;
+   margin: 0;
+   padding: 20px;
+   display: flex;
+   justify-content: center;
+}
+
+.calculator-container {
+   width: 100%;
+   max-width: 900px;
+   background-color: #fff;
+   padding: 30px;
+   border-radius: 12px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+   color: #004d99;
+   text-align: center;
+   margin-bottom: 10px;
+}
+
+.description {
+   text-align: center;
+   color: #666;
+   margin-bottom: 25px;
+   font-size: 1.1em;
+}
+
+/* Card and Input Styling */
+.card {
+   border: 1px solid #e0e6ed;
+   border-radius: 8px;
+   padding: 25px;
+   margin-bottom: 20px;
+}
+
+.input-group {
+   margin-bottom: 15px;
+}
+
+label {
+   display: block;
+   margin-bottom: 5px;
+   font-weight: bold;
+   color: #004d99;
+   font-size: 0.95em;
+}
+
+input[type="number"] {
+   width: 95%;
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 6px;
+   font-size: 1em;
+}
+
+.hint-text {
+   font-size: 0.85em;
+   color: #999;
+   margin-top: 5px;
+   display: block;
+}
+
+hr {
+   border: 0;
+   height: 1px;
+   background-color: #e0e6ed;
+   margin: 20px 0;
+}
+
+/* Table Styling */
+#hceDataTable, .correction-table {
+   width: 100%;
+   border-collapse: collapse;
+   margin: 15px 0;
+}
+
+#hceDataTable th, .correction-table th {
+   background-color: #007bff;
+   color: white;
+   padding: 10px;
+   text-align: left;
+}
+
+#hceDataTable td, .correction-table td {
+   border: 1px solid #ddd;
+   padding: 8px;
+   text-align: center;
+}
+
+#hceDataTable tbody tr:nth-child(even), .correction-table tbody tr:nth-child(even) {
+   background-color: #f2f2f2;
+}
+
+/* Input size within the table */
+#hceDataTable input {
+   width: 85%;
+   padding: 5px;
+   text-align: right;
+}
+
+/* Button Styling */
+.btn-primary {
+   display: block;
+   width: 100%;
+   padding: 12px 20px;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 1.1em;
+   background-color: #28a745; /* Green for execution */
+   color: white;
+   margin-top: 20px;
+   transition: background-color 0.3s;
+}
+
+.btn-secondary {
+   padding: 8px 15px;
+   border: 1px solid #007bff;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 0.9em;
+   background-color: #fff;
+   color: #007bff;
+   margin-top: 10px;
+   transition: background-color 0.3s;
+}
+
+.result-card h2 {
+   color: #dc3545; /* Red for high-stakes test result */
+   border-bottom: 2px solid #e9ecef;
+   padding-bottom: 10px;
+   margin-top: 0;
+}
+
+.metric-row {
+   display: flex;
+   justify-content: space-between;
+   padding: 8px 0;
+   border-bottom: 1px dashed #eee;
+}
+
+.metric-label {
+   font-weight: bold;
+   color: #333;
+}
+
+.metric-value {
+   font-weight: 700;
+   color: #007bff;
+}
+
+.status-fail {
+   color: white;
+   background-color: #dc3545;
+   padding: 5px 10px;
+   border-radius: 4px;
+   font-weight: bold;
+}
+
+.status-pass {
+   color: white;
+   background-color: #28a745;
+   padding: 5px 10px;
+   border-radius: 4px;
+   font-weight: bold;
+}
+
+/* Error and Logo (standard) */
+.logo-container {
+   text-align: center;
+   margin-bottom: 20px;
+}
+.company-logo {
+   max-width: 150px;
+   height: auto;
+   display: block;
+   margin: 0 auto;
+}
+.error-message {
+   color: #dc3545;
+   font-weight: bold;
+   text-align: center;
+   margin-top: 20px;
+   padding: 10px;
+   border: 1px solid #dc3545;
+   background-color: #f8d7da;
+   border-radius: 6px;
+   display: none;
+}

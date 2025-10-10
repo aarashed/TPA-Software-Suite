@@ -1,9 +1,9 @@
 /* --- Global & Base Styling --- */
 :root {
-   /* NEW SYNCHRONIZED THEME COLORS */
+   /* SYNCHRONIZED THEME COLORS: MUST MATCH iframe_content_styles.css */
    --color-primary: #1A5276;     /* Dark Blue/Teal (Professional Main Color for Header/Headings) */
    --color-accent: #FF9900;      /* Vibrant Orange (Eye-catching highlight) */
-   --color-secondary-bg: #f4f7fa; /* Very Light Grey/Blue (Off-white background for body) */
+   --color-secondary-bg: #f4f7fa; /* Very Light Grey/Blue (Off-white background for body and table headers) */
    --color-link-hover: #E8F0F7;  /* Soft Blue for sidebar link hover */
    --color-success: #28a745;     /* Standard Success Green */
    --color-warning: #ffc107;     /* Standard Warning Yellow */
@@ -88,7 +88,7 @@ body {
    margin-right: 15px; 
 }
 
-/* --- NEW RESET BUTTON STYLES --- */
+/* --- RESET BUTTON STYLES (Kept from previous update) --- */
 #reset-dashboard-btn {
     background: none;
     border: none;
@@ -204,7 +204,7 @@ body {
 }
 
 #menu-search-input {
-    width: 100%;
+    width: 85%;
     padding: 8px 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -266,7 +266,10 @@ body {
 .tool-links-container.hidden, .sub-tool-links-container.hidden {
    max-height: 0 !important;
 }
-
+/* Must be defined for the class-based toggle to work */
+.hidden {
+    display: none !important; /* The !important ensures it overrides any other styling */
+}
 /* H4 (Sub-Group Header - L2) */
 .collapsible-subheader {
    display: flex;
@@ -344,7 +347,11 @@ body {
 .main-content-wrapper.sidebar-collapsed .content-area {
    padding-left: 50px;
 }
-
+/* Must be defined for the class-based toggle to work */
+.sub-tool-links-container.hidden,
+.tool-links-container.hidden {
+    display: none !important; /* The !important ensures it overrides any other styling */
+}
 
 .breadcrumb-container {
    padding: 10px 30px;

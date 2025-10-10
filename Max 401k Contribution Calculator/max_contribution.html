@@ -5,7 +5,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Max 401(k) Contribution Calculator</title>
    <link rel="stylesheet" href="max_contribution.css">
-<link rel="stylesheet" href="../iframe_content_styles.css"> 
+   <link rel="stylesheet" href="../iframe_content_styles.css"> 
 </head>
 <body>
 
@@ -37,14 +37,62 @@
                <input type="number" id="annualIncome" value="90000" min="0">
            </div>
            
+           <div class="input-group">
+                <label for="filingStatus">IRS Filing Status</label>
+                <select id="filingStatus">
+                    <option value="SINGLE">Single</option>
+                    <option value="MARRIED_FILING_JOINTLY">Married Filing Jointly</option>
+                    <option value="MARRIED_FILING_SEPARATELY">Married Filing Separately</option>
+                    <option value="HEAD_OF_HOUSEHOLD">Head of Household</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="state">State of Residence</label>
+                <select id="state" onchange="fetchStateRateForDisplay()">
+                    <!-- States populated by JS -->
+                </select>
+                <!-- Side label for instant feedback -->
+                <div class="result-box" id="stateTaxRateDisplay" style="padding: 5px; margin-top: 5px; font-size: 0.9em;">
+                    Select state for rate
+                </div>
+            </div>
+
+            <!-- NEW: Fallback Tax Rate Input Group (Initially Hidden) -->
+            <div class="input-group hidden" id="manualRateGroup">
+                <label for="manualStateRate">Manual State Marginal Tax Rate (%)</label>
+                <input type="number" id="manualStateRate" value="5.0" step="0.1" min="0" max="50" placeholder="e.g., 5.0">
+                <p class="note-text" style="color: var(--color-warning);">The automated tax fetch failed. Please enter the rate manually to continue the savings analysis.</p>
+            </div>
+           
            <button onclick="calculateMax()" class="btn-primary">Calculate Max Contribution</button>
        </div>
+
+        <!-- Section for Tax Analysis Results -->
+        <div class="card result-card" id="tax-analysis-card">
+            <h2>Tax Savings Analysis</h2>
+             <div id="savingsAnalysisResults">
+                 <p>Tax analysis will appear here after calculation.</p>
+             </div>
+        </div>
 
        <div class="card result-card" id="results">
            <h2>Maximum Contribution Limits</h2>
            <div id="contributionResults">
                <p>Enter your details and click the button to see your limits.</p>
            </div>
+       </div>
+       
+       <!-- Dedicated area for dynamic tax bracket fetch status and sources -->
+       <div class="card result-card" id="taxBracketStatus">
+           <h2>Tax Bracket Source & Summary</h2>
+           <div id="tax-loading-indicator" style="display:none; text-align: center;">
+               <div class="spinner"></div> Loading tax data...
+           </div>
+           <div id="taxBracketResults">
+               <p>Tax rate information from official sources will appear here after calculation.</p>
+           </div>
+           <div id="tax-sources" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;"></div>
        </div>
 
        <div id="error-message" class="error-message"></div>

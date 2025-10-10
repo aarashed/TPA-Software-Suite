@@ -1,59 +1,115 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>401(k) Loan Calculator</title>
+   <title>401(k) Loan/Withdrawal Estimator</title>
+   <!-- Assume style.css and iframe_content_styles.css are present -->
    <link rel="stylesheet" href="style.css">
    <link rel="stylesheet" href="../iframe_content_styles.css"> 
 </head>
 <body>
     
    <div class="calculator-container">
-      
        
        <h1>401(k) Loan/Withdrawal Estimator</h1>
-       <p class="description">Estimate the cost and repayment schedule for a potential 401(k) loan or the penalty for a withdrawal.</p>
+       <p class="description">Estimate the maximum loan eligibility, model a loan repayment schedule, or estimate the penalty for a withdrawal.</p>
 
+       <!-- Dynamic Limits Display -->
+       <div class="result-box result-info" id="current-limits-display" style="margin-bottom: 15px;">
+           <p>Loading IRS Limits...</p>
+       </div>
+       
+       <!-- Reload Button -->
+       <div style="text-align: right; margin-bottom: 15px;">
+           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads current IRS limits from the central dashboard.">
+               Reload Config
+           </button>
+       </div>
+
+       
        <div class="card input-card">
            <h2>Loan/Withdrawal Details</h2>
+           
+           <!-- VESTED BALANCE (Required for Max Loan Eligibility) -->
            <div class="input-group">
-               <label for="currentBalance">Current 401(k) Balance ($)</label>
-               <input type="number" id="currentBalance" value="50000" min="0">
+               <label for="vestedBalance">Vested Account Balance ($)</label>
+               <input type="number" id="vestedBalance" value="50000" min="0">
            </div>
            
+           <!-- OUTSTANDING LOAN (Required for Max Loan Eligibility) -->
+           <div class="input-group">
+               <label for="outstandingLoan">Outstanding Loan Balance ($)</label>
+               <input type="number" id="outstandingLoan" value="0" min="0">
+           </div>
+           
+           <!-- EMPLOYEE AGE (Required for Withdrawal Penalty) -->
+           <div class="input-group">
+               <label for="age">Employee Age (Years)</label>
+               <input type="number" id="age" value="40" min="18" max="75">
+           </div>
+           
+           <!-- LOAN/WITHDRAWAL AMOUNT -->
            <div class="input-group">
                <label for="amount">Loan/Withdrawal Amount ($)</label>
                <input type="number" id="amount" value="10000" min="1" required>
            </div>
-
+           
+           <!-- YEARS VESTED (Used for plan-specific checks) -->
+           <div class="input-group">
+               <label for="yearsVested">Years Vested in Plan (Years)</label>
+               <input type="number" id="yearsVested" value="5" min="0" max="40">
+           </div>
+           
+           <!-- INTEREST RATE (Required for Repayment Calc) -->
            <div class="input-group">
                <label for="loanInterest">Assumed Loan Interest Rate (%)</label>
                <input type="number" id="loanInterest" value="6.0" step="0.1" min="0" max="20">
            </div>
 
+           <!-- LOAN TERM (Required for Repayment Calc) -->
            <div class="input-group">
                <label for="loanTerm">Loan Term (Years)</label>
                <input type="number" id="loanTerm" value="5" min="1" max="15">
            </div>
 
-           <button onclick="calculateLoan()" class="btn-primary">Calculate Loan</button>
-           <button onclick="calculateWithdrawal()" class="btn-secondary">Calculate Withdrawal Penalty</button>
+           <!-- Calculation Buttons: Run All and Individual -->
+           <div class="button-group" style="margin-top: 25px;">
+               <!-- Primary Run All Button (THIS IS THE BINDING: onclick="runAllEstimators()") -->
+               <button onclick="runAllEstimators()" class="btn-accent" style="width: 100%; max-width: 300px; padding: 12px; margin: 0 auto 15px auto; display: block;">
+                   Run All Estimators
+               </button>
+               
+               <div style="text-align: center; margin-bottom: 15px;"><small>— OR CALCULATE INDIVIDUALLY —</small></div>
+
+               <!-- Secondary Individual Buttons -->
+               <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                   <button onclick="calculateMaxLoan()" class="btn-primary" style="flex-grow: 1; max-width: 200px;">Max Loan Eligibility</button>
+                   <button onclick="calculateLoan()" class="btn-secondary" style="flex-grow: 1; max-width: 200px;">Loan Repayment</button>
+                   <button onclick="calculateWithdrawal()" class="btn-primary" style="flex-grow: 1; max-width: 200px; background-color: #5d5d5d; color: white;">Withdrawal Penalty</button>
+               </div>
+           </div>
        </div>
 
        <div class="card result-card" id="results">
            <h2>Estimated Results</h2>
+           
+           <!-- Result sections for each calculation -->
+           <div id="maxLoanResults" class="result-section">
+                <p>Enter details and click **Run any Estimators** to see results.</p>
+           </div>
            <div id="loanResults" class="result-section">
-               </div>
+                <p>Enter details and click **Run any Estimators** to see results.</p>
+           </div>
            <div id="withdrawalResults" class="result-section">
-               </div>
+                <p>Enter details and click **Run any Estimators** to see results.</p>
+           </div>
        </div>
 
        <div id="error-message" class="error-message"></div>
    </div>
 
-   <script src="script.js"></script>
+   <!-- This links the JavaScript where runAllEstimators() is defined -->
+   <script src="loan_withdrawal.js"></script>
 </body>
 </html>

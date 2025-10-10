@@ -1,39 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Dashboard Home</title>
-   <link rel="stylesheet" href="dashboard_home.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Home</title>
+    <link rel="stylesheet" href="iframe_content_styles.css">
+    
+    <style>
+        /* Styles for the new limits display */
+        .limits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .limit-item {
+            padding: 15px;
+            border: 1px solid var(--color-border-light);
+            border-radius: 8px;
+            background-color: var(--color-secondary-bg);
+        }
+        .limit-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .limit-value {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        .card {
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .description {
+            color: #555;
+        }
+    </style>
 </head>
 <body>
-   <div class="dashboard-home-content">
-       <h1>Welcome to the TPA Software Suite</h1>
-       <p class="intro-text">Select a tool from the left menu to begin your compliance or administrative task.</p>
+    <div class="tool-content-wrapper">
+        
+        <h1>Welcome to the TPA Compliance Dashboard</h1>
+        <p class="description">
+            Use the sidebar menu to navigate the full suite of compliance, testing, and utility calculation tools.
+            All tools are configured using the Plan Rules below.
+        </p>
 
-       <section class="status-overview">
-           <h2>Immediate Plan Status (Placeholder: XYZ Company Plan)</h2>
-           <div class="status-cards">
-               <div class="card status-card status-green">
-                   <div class="metric-value">98%</div>
-                   <div class="metric-label">Compliance Status</div>
-               </div>
-               <div class="card status-card status-yellow">
-                   <div class="metric-value">2 Open</div>
-                   <div class="metric-label">Critical Alerts (415c & RMD)</div>
-               </div>
-               <div class="card status-card status-red">
-                   <div class="metric-value">CRITICAL</div>
-                   <div class="metric-label">Compensation Data Integrity</div>
-               </div>
-               <div class="card status-card status-blue">
-                   <div class="metric-value">4.8/5.0</div>
-                   <div class="metric-label">Fiduciary Health Score</div>
-               </div>
-           </div>
-       </section>
-       
-    <!--   <p><a href="#" onclick="window.parent.loadHome(); return false;">Click here to reset Dashboard Home</a></p>    -->
-   </div>
+        <div class="card" id="plan-limits-summary">
+            <h2>Current Plan & Compliance Limits (Read-Only)</h2>
+            <p class="description">These are the annual statutory and plan-specific limits currently used across all calculators and modules.</p>
+            <div id="limits-display-grid" class="limits-grid">
+                <p>Loading compliance limits...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Recent Activity & Announcements</h2>
+            <p>No new activity. Last plan update: 2024-01-15.</p>
+        </div>
+
+    </div>
+    <div id="limits-display-grid" class="limits-grid">
+   
+</div>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        if (window.parent && window.parent.renderLimitsSummary) {
+            setTimeout(window.parent.renderLimitsSummary, 50);
+        }
+    });
+</script>
+    <script>
+        // CRITICAL TRIGGER: Tells the parent page to run the render function once the iframe content is ready.
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.parent && window.parent.renderLimitsSummary) {
+                // Short delay to ensure parent script is fully active
+                setTimeout(window.parent.renderLimitsSummary, 50);
+            }
+        });
+    </script>
 </body>
 </html>

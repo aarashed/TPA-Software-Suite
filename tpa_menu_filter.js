@@ -1,107 +1,191 @@
-/**
- * tpa_menu_filter.js
- * Contains the advanced search and filter logic for the nested sidebar menu.
- */
+// Function to run after the document is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- 1. Menu Toggling Logic (Collapsible Groups) ---
 
-function filterModules() {
-    const filter = document.getElementById('menu-search-input').value.toUpperCase().trim();
-    const allToolLinks = document.querySelectorAll('.tool-link');
-    const allSubGroups = document.querySelectorAll('.collapsible-subheader'); // L2 (H4)
-    const allModuleGroups = document.querySelectorAll('.collapsible-header'); // L1 (H3)
-
-    // 1. Initial Pass: Filter individual tool links (L3)
-    allToolLinks.forEach(link => {
-        const linkText = link.textContent || link.innerText;
-
-        if (filter === "") {
-            link.classList.remove('filtered-hidden');
-        } else {
-            if (linkText.toUpperCase().includes(filter)) {
-                link.classList.remove('filtered-hidden');
-            } else {
-                link.classList.add('filtered-hidden');
+    /**
+     * Finds the collapsible content using a HYBRID strategy:
+     * 1. Uses data-target attribute for specific ID lookups (most reliable).
+     * 2. Falls back to nextElementSibling for all other H3/H4 headers.
+     */
+    function findCollapsibleContent(header) {
+        
+        // Strategy 1: Check for a data-target attribute (used for problem menus)
+        const targetId = header.getAttribute('data-target');
+        if (targetId) {
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                return targetElement;
             }
         }
-    });
-
-    // 2. Second Pass: Filter up the hierarchy (L2 - H4)
-    allSubGroups.forEach(subGroupHeader => {
-        const subGroupContent = subGroupHeader.nextElementSibling; // .sub-tool-links-container
-        const visibleLinks = subGroupContent.querySelectorAll('.tool-link:not(.filtered-hidden)');
         
-        // Remove the hidden class on the L2 header and content for clean re-filtering
-        subGroupHeader.classList.remove('filtered-hidden');
-        subGroupContent.classList.remove('filtered-hidden');
+        // Strategy 2: Fallback to nextElementSibling for all other (working) menus
+        let nextElement = header.nextElementSibling;
+        
+        if (nextElement && (nextElement.classList.contains('tool-links-container') || nextElement.classList.contains('sub-tool-links-container'))) {
+            return nextElement;
+        }
+        return null; 
+    }
+    
 
-        if (filter === "") {
-            // If filter is cleared, we let the L1/L2 toggle state be restored in the final step.
-        } else {
-            const headerText = subGroupHeader.textContent.toUpperCase();
+    function setupMenuToggle(selector) {
+        document.querySelectorAll(selector).forEach(header => {
             
-            // If no children match AND the header itself doesn't match, hide L2 group
-            if (visibleLinks.length === 0 && !headerText.includes(filter)) {
-                subGroupHeader.classList.add('filtered-hidden');
-                subGroupContent.classList.add('filtered-hidden');
-            } else {
-                // If it should be visible (match found or header match), ensure it's open
-                subGroupContent.classList.remove('hidden'); // Open the container
-                subGroupHeader.querySelector('.toggle-arrow').textContent = '▼';
+            // --- AGGRESSIVE ICON CLEANUP AND INITIALIZATION ---
+            // Ensures the icon is correctly initialized/reset
+            header.querySelectorAll('.toggle-icon').forEach(icon => icon.remove());
+            // Remove emojis/icons used for grouping before re-adding the toggle icon
+            let cleanText = header.textContent.trim().replace(/[\u2705\u2699\u26A1\u2692\u269C\uD83D\uDCC8\uD83D\uDCDD\uD83D\uDCB8\u2699\uD83C\uDFE0\uD83D\uDCCA\uD83D\uDCDD\uD83D\uDCB8\u2699\uFE0F]/g, '').trim(); 
+            // Reconstruct the header content, preserving the group-icon if present
+            header.innerHTML = `<span class="group-icon">${header.querySelector('.group-icon') ? header.querySelector('.group-icon').outerHTML : ''}</span> <span>${cleanText}</span> <span class="toggle-icon">▼</span>`;
+
+            // --- Click Handler ---
+            header.addEventListener('click', function() {
+                const content = findCollapsibleContent(header);
+                if (content) {
+                    const isHidden = content.classList.contains('hidden');
+                    content.classList.toggle('hidden', !isHidden);
+                    const icon = header.querySelector('.toggle-icon');
+                    if (icon) {
+                        icon.textContent = isHidden ? '▶' : '▼';
+                    }
+                }
+            });
+            
+            // --- Initial State (Default all sub-headers closed) ---
+            if (selector === '.collapsible-subheader') {
+                const content = findCollapsibleContent(header);
+                if (content) {
+                    content.classList.add('hidden');
+                    const icon = header.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '▶';
+                }
             }
-        }
-    });
+        });
+    }
+
+    // Apply toggling logic to main headers and sub-headers
+    setupMenuToggle('.collapsible-header');
+    setupMenuToggle('.collapsible-subheader');
 
 
-    // 3. Third Pass: Filter up the hierarchy (L1 - H3)
-    allModuleGroups.forEach(moduleGroupHeader => {
-        const moduleGroupContent = moduleGroupHeader.nextElementSibling; // .tool-links-container
+    // --- 2. Menu Filtering Logic (Search) ---
+
+    /**
+     * Filters the entire menu structure based on the search text.
+     * Shows/hides individual links, and expands/collapses parent containers.
+     * @param {string} filterText - The search term.
+     */
+    function filterMenu(filterText) {
+        const searchText = filterText.toLowerCase();
+
+        // 1. Reset all containers to hidden state for re-evaluation
+        document.querySelectorAll('.tool-links-container, .sub-tool-links-container').forEach(container => {
+            container.classList.add('hidden');
+        });
+        document.querySelectorAll('.toggle-icon').forEach(icon => icon.textContent = '▶');
+
+
+        document.querySelectorAll('.tool-link').forEach(link => {
+            const linkText = link.textContent.toLowerCase();
+            const matches = linkText.includes(searchText);
+
+            if (matches) {
+                link.style.display = "block";
+
+                // Find the parent containers and make them visible
+
+                // A. Find the direct parent container (sub-container)
+                const subContainer = link.closest('.sub-tool-links-container') || link.closest('.tool-links-container');
+                
+                if (subContainer) {
+                    subContainer.classList.remove('hidden');
+                    
+                    // Find the preceding H4 header for the sub-container
+                    let h4 = null;
+                    // Try to find by data-target first
+                    if (subContainer.id) {
+                         h4 = document.querySelector(`.collapsible-subheader[data-target=\"${subContainer.id}\"]`);
+                    }
+                    // Fallback to previousElementSibling if no data-target match
+                    if (!h4) {
+                        h4 = subContainer.previousElementSibling;
+                    }
+
+                    if (h4 && h4.tagName === 'H4') {
+                        const icon = h4.querySelector('.toggle-icon');
+                        if (icon) icon.textContent = '▼';
+                    }
+                }
+
+                // B. Find the main module container
+                const mainContainer = link.closest('.module-group');
+
+                if (mainContainer) {
+                    // Find the preceding H3 header
+                    const h3 = mainContainer.querySelector('.collapsible-header');
+                    if (h3) {
+                         // Ensure the H3's content (tool-links-container) is visible
+                         const h3Content = findCollapsibleContent(h3);
+                         if (h3Content) {
+                            h3Content.classList.remove('hidden');
+                            const icon = h3.querySelector('.toggle-icon');
+                            if (icon) icon.textContent = '▼';
+                         }
+                    }
+                }
+
+            } else {
+                link.style.display = "none"; 
+            }
+        });
         
-        // Count visible children (L2 headers and direct L3 links)
-        const visibleSubGroupHeaders = moduleGroupContent.querySelectorAll('.collapsible-subheader:not(.filtered-hidden)');
-        const directLinks = moduleGroupContent.querySelectorAll(':scope > .tool-link:not(.filtered-hidden)');
+        // 3. If no search text, restore default state (all links visible, main groups open, sub-groups closed)
+        if (filterText === '') {
+             // Ensure all links are visible
+            document.querySelectorAll('.tool-link').forEach(link => link.style.display = "block");
+            
+            // Restore all main headers to their default open state
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                const h3Content = findCollapsibleContent(header);
+                if (h3Content) {
+                    h3Content.classList.remove('hidden');
+                    const icon = header.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '▼';
+                }
+            });
+            
+            // Reset sub-headers to closed state
+            document.querySelectorAll('.collapsible-subheader').forEach(header => {
+                const subContent = findCollapsibleContent(header);
+                if (subContent) {
+                    subContent.classList.add('hidden');
+                    const icon = header.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '▶';
+                }
+            });
+        }
+    }
 
-        // Remove the hidden class on the L1 header and content for clean re-filtering
-        moduleGroupHeader.classList.remove('filtered-hidden');
-        moduleGroupContent.classList.remove('filtered-hidden');
+    // Add event listener to the search input field
+    const searchInput = document.getElementById('menu-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (event) => {
+            filterMenu(event.target.value);
+        });
+    }
 
-
-        if (filter === "") {
-            // If filter is cleared, we let the L1 toggle state be restored in the final step.
-        } else {
-            const headerText = moduleGroupHeader.textContent.toUpperCase();
-
-            // If no children match AND the header itself doesn't match, hide L1 group
-            if (visibleSubGroupHeaders.length === 0 && directLinks.length === 0 && !headerText.includes(filter)) {
-                moduleGroupHeader.classList.add('filtered-hidden');
-                moduleGroupContent.classList.add('filtered-hidden');
-            } else {
-                // If it should be visible, ensure it's open
-                moduleGroupContent.classList.remove('hidden'); // Open the container
-                moduleGroupHeader.querySelector('.toggle-arrow').textContent = '▼';
+    // CRITICAL FIX: Add event listener to the clear button to reset the input and filter
+    const clearButton = document.getElementById('clear-search-btn');
+    if (clearButton) {
+        clearButton.addEventListener('click', () => {
+            if (searchInput) {
+                // 1. Clear the text input
+                searchInput.value = '';
+                // 2. Clear the filter and restore the default menu state
+                filterMenu('');
             }
-        }
-    });
-
-    // 4. Reset: If filter is empty, restore original collapsed/expanded states
-    if (filter === "") {
-        // Since we don't store state, we simply reset the visual arrows for groups that have the 'hidden' class
-        allModuleGroups.forEach(h3 => toggleLinksReset(h3));
-        allSubGroups.forEach(h4 => toggleLinksReset(h4));
+        });
     }
-}
-
-/**
- * Helper function to restore collapsed state when search is cleared.
- * Resets the toggle arrow based on the 'hidden' class on the container.
- */
-function toggleLinksReset(header) {
-    const container = header.nextElementSibling; 
-    const arrow = header.querySelector('.toggle-arrow');
-
-    if (container && arrow) {
-        if (container.classList.contains('hidden')) {
-            arrow.textContent = '▶'; 
-        } else {
-            arrow.textContent = '▼'; 
-        }
-    }
-}
+});

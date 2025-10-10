@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Census Data Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Setting Firebase log level to Debug for visibility in the console
+        setLogLevel('Debug');
+
+        // --- GLOBAL VARIABLES (Provided by Canvas) ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let app, db, auth, userId = null;
+        let rawCensusData = []; // Stores the parsed data from CSV
+        let processedCensus = []; // Stores the standardized, validated data
+
+        // --- STANDARD DATA MODEL (REQUIRED FIELDS) ---
+        const STANDARD_FIELDS = [
+            { key: 'EmployeeID', label: 'Employee ID (Req)', type: 'string', required: true },
+            { key: 'FirstName', label: 'First Name', type: 'string', required: false },
+            { key: 'LastName', label: 'Last Name', type: 'string', required: false },
+            { key: 'DateOfBirth', label: 'Date of Birth (YYYY-MM-DD)', type: 'date', required: true },
+            { key: 'Compensation', label: 'Annual Compensation ($) (Req)', type: 'number', required: true },
+            { key: 'Deferral_Pct', label: 'Employee Deferral Rate (%)', type: 'number', required: false },
+            { key: 'Match_Contrib', label: 'Employer Match/PS Contribution ($)', type: 'number', required: false },
+            { key: 'Vested_Balance', label: 'Vested Account Balance ($)', type: 'number', required: true },
+            // Calculated/Status fields (not mapped from CSV, but often used in tools)
+            { key: 'HCE_Status', label: 'HCE Status (True/False)', type: 'boolean', required: false },
+            { key: 'Key_Status', label: 'Key Employee Status (True/False)', type: 'boolean', required: false }
+        ];
+
+        // --- FIREBASE INITIALIZATION AND AUTHENTICATION ---
+
+        async function initFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    throw new Error("Firebase configuration is missing or empty.");
+                }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                document.getElementById('status-message').textContent = `User ID: ${userId} | App ID: ${appId}`;
+                document.getElementById('load-button').disabled = false;
+                
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                displayError("Failed to initialize database. Check console for details.");
+            }
+        }
+
+        // --- UTILITY FUNCTIONS ---
+
+        function displayMessage(text, isError = false) {
+            const el = document.getElementById('status-message');
+            el.textContent = text;
+            el.className = isError 
+                ? 'p-3 bg-red-100 text-red-700 border border-red-400 rounded-lg transition'
+                : 'p-3 bg-green-100 text-green-700 border border-green-400 rounded-lg transition';
+        }
+        
+        function displayError(text) {
+            displayMessage(`Error: ${text}`, true);
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0
+            }).format(value);
+        }
+
+        // --- FIREBASE CRUD OPERATIONS ---
+        
+        /**
+         * Returns the Firestore document reference for the public census data.
+         * The document ID is constant for the active plan.
+         */
+        function getCensusDocRef() {
+            if (!db) {
+                displayError("Database not initialized.");
+                return null;
+            }
+            // Public data path: /artifacts/{appId}/public/data/census_data/{documentId}
+            const docPath = `artifacts/${appId}/public/data/census_data/current_census`;
+            return doc(db, docPath);
+        }
+
+        /**
+         * Saves the processed census data array to Firestore.
+         */
+        async function saveCensus() {
+            if (processedCensus.length === 0) {
+                displayError("Cannot save: No valid processed census data found.");
+                return;
+            }
+
+            const docRef = getCensusDocRef();
+            if (!docRef) return;
+            
+            try {
+                displayMessage("Saving census data...");
+                
+                // Firestore limit is 1MB per document. Stringifying a large array is necessary
+                // because Firestore doesn't handle complex object arrays well directly.
+                const serializedData = JSON.stringify(processedCensus);
+
+                await setDoc(docRef, { 
+                    timestamp: new Date().toISOString(),
+                    user: userId,
+                    censusData: serializedData,
+                    employeeCount: processedCensus.length,
+                    appId: appId
+                });
+
+                displayMessage(`Successfully saved ${processedCensus.length} employee records.`);
+                // Render the saved data to confirm
+                renderPreviewTable(processedCensus);
+
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                displayError("Failed to save census data. Check console for details.");
+            }
+        }
+
+        /**
+         * Loads the census data from Firestore.
+         */
+        async function loadCensus() {
+            const docRef = getCensusDocRef();
+            if (!docRef) return;
+            
+            try {
+                displayMessage("Loading saved census data...");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const deserializedData = JSON.parse(data.censusData);
+                    processedCensus = deserializedData; // Update global state
+                    renderPreviewTable(processedCensus);
+                    displayMessage(`Successfully loaded ${processedCensus.length} employee records from the database.`);
+                } else {
+                    displayMessage("No census data found for this plan. Please upload a CSV.");
+                    // Clear the table
+                    renderPreviewTable([]);
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                displayError("Failed to load census data. The data may be corrupted. Check console for details.");
+            }
+        }
+        
+        // --- CSV PARSING AND MAPPING UI ---
+
+        /**
+         * Handles file selection and initiates CSV parsing.
+         */
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            displayMessage(`Parsing file: ${file.name}...`);
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    rawCensusData = results.data;
+                    const headers = results.meta.fields;
+                    renderMappingUI(headers);
+                    document.getElementById('process-button').disabled = false;
+                    document.getElementById('mapping-section').scrollIntoView({ behavior: 'smooth' });
+                    displayMessage(`File parsed. ${rawCensusData.length} records found. Please map columns.`);
+                },
+                error: function(error) {
+                    displayError(`CSV Parsing Error: ${error.message}`);
+                }
+            });
+        }
+
+        /**
+         * Renders the dynamic dropdowns for column mapping.
+         */
+        function renderMappingUI(csvHeaders) {
+            const mappingDiv = document.getElementById('column-mapping-container');
+            mappingDiv.innerHTML = ''; // Clear previous mappings
+            
+            // Create options for the standard fields
+            const standardOptions = STANDARD_FIELDS.map(field => 
+                `<option value="${field.key}">${field.label}</option>`
+            ).join('');
+            
+            const standardKeys = STANDARD_FIELDS.map(f => f.key);
+
+            // Create a mapping dropdown for each CSV header
+            csvHeaders.forEach(csvHeader => {
+                const standardizedKey = standardKeys.find(key => 
+                    csvHeader.toLowerCase().replace(/[^a-z0-9]/g, '') === key.toLowerCase().replace(/[^a-z0-9]/g, '')
+                );
+                
+                const defaultValue = standardizedKey || '';
+
+                const inputGroup = `
+                    <div class="flex items-center space-x-2 p-2 border-b last:border-b-0">
+                        <span class="font-mono text-sm w-1/3 p-2 bg-gray-50 rounded-md">${csvHeader}</span>
+                        <span class="text-gray-500">→</span>
+                        <select data-csv-header="${csvHeader}" class="flex-grow p-2 border rounded-md" style="font-size: 0.9em;">
+                            <option value="">-- Ignore Column --</option>
+                            ${standardOptions}
+                        </select>
+                    </div>
+                `;
+                mappingDiv.innerHTML += inputGroup;
+                
+                // Set the default value after injection (DOM required)
+                const selectElement = mappingDiv.querySelector(`select[data-csv-header="${csvHeader}"]`);
+                if (selectElement) {
+                    selectElement.value = defaultValue;
+                }
+            });
+
+            document.getElementById('mapping-section').style.display = 'block';
+        }
+
+        // --- DATA PROCESSING AND VALIDATION ---
+
+        /**
+         * Processes the raw data based on the user's column mapping.
+         */
+        function processCensusData() {
+            if (rawCensusData.length === 0) {
+                displayError("No raw data to process. Please upload a file first.");
+                return;
+            }
+            
+            const mappingSelects = document.querySelectorAll('#column-mapping-container select');
+            const map = {};
+            
+            // Build the map: { StandardKey: CSV_Header }
+            mappingSelects.forEach(select => {
+                if (select.value) {
+                    map[select.value] = select.getAttribute('data-csv-header');
+                }
+            });
+            
+            const processed = [];
+            let errorCount = 0;
+            const requiredKeys = STANDARD_FIELDS.filter(f => f.required).map(f => f.key);
+            
+            displayMessage("Validating and processing data...");
+
+            rawCensusData.forEach((row, index) => {
+                const employee = {};
+                let isValid = true;
+                
+                // 1. Map and Standardize
+                STANDARD_FIELDS.forEach(field => {
+                    const csvHeader = map[field.key];
+                    let value = csvHeader ? row[csvHeader] : null;
+
+                    if (value === undefined || value === null) value = '';
+                    
+                    // 2. Validation and Type Conversion
+                    if (field.type === 'number') {
+                        // Clean up currency symbols/commas, then parse
+                        const cleanedValue = String(value).replace(/[$,]/g, '');
+                        employee[field.key] = parseFloat(cleanedValue) || 0;
+                    } else if (field.type === 'date') {
+                        // Basic date validation (YYYY-MM-DD expected)
+                        const date = new Date(value);
+                        if (isNaN(date)) {
+                            employee[field.key] = null;
+                        } else {
+                            // Store as standardized string (YYYY-MM-DD)
+                            employee[field.key] = date.toISOString().split('T')[0];
+                        }
+                    } else {
+                        employee[field.key] = String(value).trim();
+                    }
+                    
+                    // 3. Check Required Fields
+                    if (field.required && !employee[field.key] && employee[field.key] !== 0) {
+                        if (errorCount < 5) { // Only log the first 5 errors to avoid spam
+                             console.warn(`Validation Error on Row ${index + 1}: Required field missing: ${field.label}`);
+                        }
+                        errorCount++;
+                        isValid = false;
+                    }
+                });
+
+                if (isValid) {
+                    processed.push(employee);
+                }
+            });
+            
+            if (errorCount > 0) {
+                displayError(`Data processing finished with ${errorCount} records failing required field validation. Only ${processed.length} valid records processed.`);
+            } else {
+                displayMessage(`Successfully processed and validated ${processed.length} employee records.`);
+            }
+
+            processedCensus = processed;
+            renderPreviewTable(processedCensus);
+            document.getElementById('save-button').disabled = processedCensus.length === 0;
+        }
+
+
+        // --- DATA PREVIEW RENDERING ---
+
+        function renderPreviewTable(data) {
+            const tableBody = document.getElementById('preview-table-body');
+            const tableContainer = document.getElementById('preview-table-container');
+            const tableHeader = document.getElementById('preview-table-header');
+            
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                tableContainer.style.display = 'none';
+                return;
+            }
+            
+            tableContainer.style.display = 'block';
+
+            // 1. Generate Header (use standard fields)
+            tableHeader.innerHTML = STANDARD_FIELDS.map(field => 
+                `<th class="px-4 py-2 text-left">${field.label.split('(')[0].trim()}</th>`
+            ).join('');
+
+            // 2. Generate Body Rows
+            const rows = data.slice(0, 100).map((employee, index) => {
+                const cells = STANDARD_FIELDS.map(field => {
+                    let value = employee[field.key] || 'N/A';
+                    
+                    // Format currency fields for display
+                    if (field.type === 'number' && ['Compensation', 'Match_Contrib', 'Vested_Balance'].includes(field.key)) {
+                        value = formatCurrency(value);
+                    }
+                    
+                    return `<td class="border px-4 py-2 text-sm">${value}</td>`;
+                }).join('');
+                
+                return `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">${cells}</tr>`;
+            }).join('');
+            
+            tableBody.innerHTML = rows;
+        }
+
+        // Initialize Firebase on window load
+        window.onload = initFirebase;
+        
+        // Expose functions to the global scope for buttons
+        window.handleFileSelect = handleFileSelect;
+        window.processCensusData = processCensusData;
+        window.saveCensus = saveCensus;
+        window.loadCensus = loadCensus;
+
+    </script>
+    <style>
+        .font-inter { font-family: 'Inter', sans-serif; }
+        /* Custom styles to ensure readability and modern look */
+        .calculator-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .btn-secondary {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #374151; /* gray-700 */
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+
+    <div class="calculator-container my-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Employee Census Manager</h1>
+        <p class="text-gray-600 mb-6">Upload, map, validate, and store the employee census data for this plan in the database.</p>
+
+        <!-- Status Message -->
+        <div id="status-message" class="p-3 bg-yellow-100 text-yellow-700 border border-yellow-400 rounded-lg mb-6">
+            Initializing Firebase and authentication...
+        </div>
+
+        <!-- 1. UPLOAD SECTION -->
+        <div class="card p-6 bg-white border border-gray-200 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">⬆️</span> Step 1: Upload CSV File
+            </h2>
+            <input 
+                type="file" 
+                id="csv-file-input" 
+                accept=".csv" 
+                onchange="handleFileSelect(event)"
+                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            >
+            <p class="text-xs text-gray-500 mt-2">
+                *File must be a standard CSV format. Once uploaded, proceed to mapping below.
+            </p>
+        </div>
+
+        <!-- 2. MAPPING SECTION (Hidden until file upload) -->
+        <div id="mapping-section" class="card p-6 bg-white border border-gray-200 rounded-xl shadow-lg mb-8" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">📝</span> Step 2: Map Columns
+            </h2>
+            <p class="text-gray-600 mb-4">
+                Match the column headers from your CSV file (left) to the software's required standard fields (right).
+            </p>
+            
+            <div id="column-mapping-container" class="bg-white border rounded-lg overflow-hidden divide-y divide-gray-200">
+                <!-- Dynamic mapping inputs will be injected here by renderMappingUI() -->
+            </div>
+            
+            <button onclick="processCensusData()" id="process-button" class="mt-6 btn-primary w-full" disabled>
+                Process & Validate Data (Step 3)
+            </button>
+        </div>
+
+        <!-- 3. ACTIONS & PREVIEW SECTION -->
+        <div class="card p-6 bg-white border border-gray-200 rounded-xl shadow-lg">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">💾</span> Data Management
+            </h2>
+            
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button onclick="loadCensus()" id="load-button" class="btn-secondary flex-1" disabled>
+                    Load Saved Census Data
+                </button>
+                <button onclick="saveCensus()" id="save-button" class="btn-primary flex-1" disabled>
+                    Save Processed Data to Plan
+                </button>
+            </div>
+            
+            <p class="text-gray-700 font-semibold mb-3">Data Preview (First 100 Valid Records):</p>
+            
+            <div id="preview-table-container" class="overflow-x-auto border rounded-lg shadow-sm" style="display: none;">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100 border-b-2 border-gray-200">
+                        <tr id="preview-table-header">
+                            <!-- Headers dynamically injected -->
+                        </tr>
+                    </thead>
+                    <tbody id="preview-table-body">
+                        <!-- Data rows dynamically injected -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <p id="no-data-message" class="text-center text-gray-500 italic mt-4">
+                No data loaded. Upload a file or load saved data.
+            </p>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Limit Configuration Tool</title>
+    <link rel="stylesheet" href="iframe_content_styles.css">
+    
+    <style>
+        /* Styles needed for the read-only display card */
+        .limits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .limit-item {
+            padding: 15px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            background-color: var(--color-secondary-bg);
+        }
+        .limit-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .limit-value {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        .card {
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .description {
+            color: #555;
+        }
+        /* Custom styles for the configuration form (optional, but good practice) */
+        .btn-warning { background-color: #ffc107; border-color: #ffc107; color: #333; }
+        .btn-accent { background-color: #ff8a00; border-color: #ff8a00; color: #fff; }
+        .btn-secondary { background-color: #6c757d; border-color: #6c757d; color: #fff; }
+        /* Style for the dangerous reset action */
+        .btn-danger-reset { 
+            background-color: #dc3545; 
+            border-color: #dc3545; 
+            color: #fff; 
+            font-weight: 600;
+        }
+
+        /* Highlight style for fields customized from default */
+        .is-custom {
+            /* Subtle but noticeable orange/yellow border */
+            border: 2px solid #ffcc66 !important; 
+            box-shadow: 0 0 5px rgba(255, 150, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-content-wrapper">
+        
+        <h1>Plan Limit Configuration Tool</h1>
+        <p class="description">Use this tool to modify the statutory and plan-specific limits used by all calculators on the dashboard.</p>
+
+        <div class="card" id="plan-limits-summary">
+            <h2>Current Plan & Compliance Limits (Read-Only)</h2>
+            <p class="description">Review the limits before making changes below. Saving will update the limits everywhere.</p>
+            <div id="limits-display-grid" class="limits-grid">
+                <p>Loading compliance limits...</p>
+            </div>
+        </div>
+
+        <section class="plan-configuration">
+            <h2>Plan Configuration & Limits</h2>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" id="unlock-btn" onclick="toggleEditing(true)">
+                        <span id="lock-icon">🔒</span> Unlock Editing
+                    </button>
+                    <button class="btn btn-danger-reset" onclick="resetToDefault()">
+                        Reset to IRS Defaults
+                    </button>
+                </div>
+
+                <button class="btn btn-accent" id="save-btn" onclick="saveConfiguration()" disabled>
+                    Save Changes & Update Tools
+                </button>
+            </div>
+            
+            <div style="display: flex; gap: 30px;">
+                
+                <div style="flex: 1;">
+                    <h3>Annual IRC Limits (2025 Placeholder)</h3>
+                    
+                    <label for="limit_comp_max">Max Compensation (401(a)(17)) ($)</label>
+                    <input type="number" id="limit_comp_max" value="" placeholder="345000" disabled>
+
+                    <label for="limit_402g">402(g) Deferral Limit ($)</label>
+                    <input type="number" id="limit_402g" value="" placeholder="23000" disabled>
+
+                    <label for="limit_415c">415(c) Annual Additions ($)</label>
+                    <input type="number" id="limit_415c" value="" placeholder="69000" disabled>
+
+                    <label for="limit_catchup">Catch-Up Contribution ($)</label>
+                    <input type="number" id="limit_catchup" value="" placeholder="7500" disabled>
+
+                    <label for="limit_hce_comp_test">HCE Compensation Threshold ($)</label>
+                    <input type="number" id="limit_hce_comp_test" value="" placeholder="155000" disabled>
+                </div>
+                
+                <div style="flex: 1;">
+                    <h3>Plan Specific Rules (XYZ Company)</h3>
+                    
+                    <label for="rule_plan_name">Plan Identifier</label>
+                    <input type="text" id="rule_plan_name" value="" placeholder="e.g., XYZ Company 401k Plan" disabled>
+
+                    <label for="rule_safe_harbor">Safe Harbor Status</label>
+                    <select id="rule_safe_harbor" disabled>
+                        <option value="true">Yes (4% Match)</option>
+                        <option value="false">No</option>
+                    </select>
+                    
+                    <label for="rule_match_formula">Match Formula</label>
+                    <input type="text" id="rule_match_formula" value="" placeholder="E.g., 100% of first 3% deferred + 50% of next 2%" disabled>
+
+                    <label for="rule_comp_def">Compensation Definition</label>
+                    <input type="text" id="rule_comp_def" value="" placeholder="E.g., W2 less Pre-Tax Deferrals" disabled>
+
+                    <label for="rule_vesting">Vesting Schedule</label>
+                    <input type="text" id="rule_vesting" value="" placeholder="E.g., 3-Year Cliff" disabled>
+                </div>
+            </div>
+            <div id="save-message" style="margin-top: 10px; font-weight: 600; color: var(--color-success);"></div>
+        </section>
+    </div>
+    
+    <script>
+        // CRITICAL: Hardcoded default values from dashboard.js for comparison
+        const DEFAULT_VALUES = {
+            limit_comp_max: 345000,         
+            limit_402g: 23000,
+            limit_415c: 69000,
+            limit_catchup: 7500,
+            limit_hce_comp_test: 155000,    
+            rule_plan_name: "XYZ Company 401k Plan (Default)",
+            rule_safe_harbor: "true",
+            rule_match_formula: "100% of first 3% deferred + 50% of next 2% deferred", // NEW DEFAULT
+            rule_comp_def: "W2 less pre-tax deferrals",
+            rule_vesting: "3-year cliff"
+        };
+        
+        // UPDATED: Added new input IDs to the control list
+        const inputs = [
+            'limit_comp_max', 
+            'limit_402g', 
+            'limit_415c', 
+            'limit_catchup', 
+            'limit_hce_comp_test',
+            'rule_plan_name', 
+            'rule_safe_harbor', 
+            'rule_match_formula', // NEW INPUT ID
+            'rule_comp_def', 
+            'rule_vesting'
+        ];
+        
+        const saveBtn = document.getElementById('save-btn');
+        const unlockBtn = document.getElementById('unlock-btn');
+        const saveMsg = document.getElementById('save-message');
+        
+        // Storage for the currently loaded rules
+        let currentRules = null;
+        
+        // --- Highlight fields that differ from default ---
+        function applyCustomHighlight(rules) {
+            
+            // First, remove all existing custom classes
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.remove('is-custom');
+                }
+            });
+
+            if (!rules) return;
+
+            // UPDATED: Added ruleMap entry for Match Formula
+            const ruleMap = {
+                // IRC LIMITS (Need number comparison)
+                'limit_comp_max': { group: 'LIMITS', key: 'comp_max', type: 'number' },
+                'limit_402g': { group: 'LIMITS', key: 'deferral_402g', type: 'number' },
+                'limit_415c': { group: 'LIMITS', key: 'section_415c', type: 'number' },
+                'limit_catchup': { group: 'LIMITS', key: 'catchup', type: 'number' },
+                'limit_hce_comp_test': { group: 'LIMITS', key: 'hce_comp_test', type: 'number' },
+
+                // PLAN RULES (Need string comparison)
+                'rule_plan_name': { group: 'CLIENT_XYZ', key: 'plan_name', type: 'string' },
+                'rule_safe_harbor': { group: 'CLIENT_XYZ', key: 'safe_harbor', type: 'boolean' },
+                'rule_match_formula': { group: 'CLIENT_XYZ', key: 'match_formula', type: 'string' }, // NEW RULE MAP
+                'rule_comp_def': { group: 'CLIENT_XYZ', key: 'comp_definition', type: 'string' },
+                'rule_vesting': { group: 'CLIENT_XYZ', key: 'vesting_schedule', type: 'string' }
+            };
+
+            for (const id in ruleMap) {
+                const element = document.getElementById(id);
+                if (!element) continue;
+
+                const map = ruleMap[id];
+                let currentValue;
+                let defaultValue = DEFAULT_VALUES[id];
+
+                // Get current value from the received rules
+                if (rules[map.group] && rules[map.group][map.key] !== undefined) {
+                    currentValue = rules[map.group][map.key];
+                } else {
+                    continue; 
+                }
+                
+                let isDifferent = false;
+
+                if (map.type === 'number') {
+                    // Compare numbers after parsing the string/number from the rules
+                    isDifferent = parseFloat(currentValue) !== parseFloat(defaultValue);
+                } else if (map.type === 'boolean') {
+                    // Convert boolean value from rules to string for comparison ('true' vs 'false')
+                    const currentStr = String(currentValue);
+                    isDifferent = currentStr !== defaultValue;
+                } else { // String comparison
+                    isDifferent = String(currentValue).trim() !== String(defaultValue).trim();
+                }
+
+                if (isDifferent) {
+                    element.classList.add('is-custom');
+                }
+            }
+        }
+
+
+        // --- Function to populate the form fields with dynamic data ---
+        function populateForm(rules) {
+            currentRules = rules; // Save the rules globally in the script scope
+            
+            // Populate all five Limits
+            document.getElementById('limit_comp_max').value = rules.LIMITS.comp_max || '';
+            document.getElementById('limit_hce_comp_test').value = rules.LIMITS.hce_comp_test || '';
+            document.getElementById('limit_402g').value = rules.LIMITS.deferral_402g || '';
+            document.getElementById('limit_415c').value = rules.LIMITS.section_415c || '';
+            document.getElementById('limit_catchup').value = rules.LIMITS.catchup || '';
+
+            // Populate Rules Section
+            document.getElementById('rule_plan_name').value = rules.CLIENT_XYZ.plan_name || ''; 
+            document.getElementById('rule_safe_harbor').value = rules.CLIENT_XYZ.safe_harbor ? 'true' : 'false';
+            document.getElementById('rule_match_formula').value = rules.CLIENT_XYZ.match_formula || ''; // NEW POPULATION
+            document.getElementById('rule_comp_def').value = rules.CLIENT_XYZ.comp_definition || '';
+            document.getElementById('rule_vesting').value = rules.CLIENT_XYZ.vesting_schedule || '';
+            
+            // Apply highlight immediately after populating
+            applyCustomHighlight(currentRules);
+        }
+
+        // --- Function to request reset from parent ---
+        function resetToDefault() {
+            if (confirm('⚠️ WARNING: Are you sure you want to reset ALL plan limits and rules to the original IRS default values? This action is permanent for the current session.')) {
+                
+                window.parent.postMessage({
+                    type: 'RESET_CONFIG'
+                }, '*'); 
+
+                saveMsg.textContent = '🔄 Plan Limits Reset to IRS Defaults! Refreshing form...';
+                saveMsg.style.color = 'var(--color-warning)';
+                
+                setTimeout(() => {
+                    window.parent.postMessage({ type: 'REQUEST_CONFIG' }, '*');
+                    if (window.parent.renderLimitsSummary) {
+                         window.parent.renderLimitsSummary();
+                    }
+                }, 100);
+
+                toggleEditing(false);
+            }
+        }
+
+        // --- Add listener to receive the data ---
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'INITIAL_PLAN_CONFIG') {
+                populateForm(event.data.rules); 
+            }
+        });
+
+
+        // --- 1. TOGGLE LOCK/UNLOCK STATE ---
+        function toggleEditing(isUnlocking) {
+            const isDisabled = !isUnlocking;
+            
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.disabled = isDisabled;
+            });
+
+            // Update buttons and text
+            saveBtn.disabled = isDisabled;
+            
+            if (isUnlocking) {
+                unlockBtn.textContent = 'Editing Unlocked';
+                unlockBtn.className = 'btn btn-warning';
+                unlockBtn.onclick = () => toggleEditing(false);
+                saveMsg.textContent = 'Configuration unlocked. Fields with custom values are highlighted.';
+                saveMsg.style.color = 'var(--color-warning)';
+                
+                // CRITICAL: Re-apply highlights when unlocking, as the data may have changed.
+                applyCustomHighlight(currentRules);
+            } else {
+                unlockBtn.textContent = '🔒 Unlock Editing';
+                unlockBtn.className = 'btn btn-secondary'; 
+                unlockBtn.onclick = () => toggleEditing(true);
+                saveMsg.textContent = 'Configuration locked.';
+                saveMsg.style.color = 'var(--color-primary)';
+
+                // Remove highlights when locking
+                inputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.classList.remove('is-custom');
+                });
+            }
+        }
+
+        // --- 2. SAVE CONFIGURATION ---
+        function saveConfiguration() {
+            // Limits
+            const limits = {
+                comp_max: document.getElementById('limit_comp_max').value,
+                deferral_402g: document.getElementById('limit_402g').value,
+                section_415c: document.getElementById('limit_415c').value,
+                catchup: document.getElementById('limit_catchup').value,
+                hce_comp_test: document.getElementById('limit_hce_comp_test').value
+            };
+            
+            // UPDATED: Added match_formula to the rules payload
+            const rules = {
+                plan_name: document.getElementById('rule_plan_name').value, 
+                safe_harbor: document.getElementById('rule_safe_harbor').value,
+                match_formula: document.getElementById('rule_match_formula').value, // NEW SAVE
+                comp_definition: document.getElementById('rule_comp_def').value,
+                vesting_schedule: document.getElementById('rule_vesting').value
+            };
+
+            window.parent.postMessage({
+                type: 'UPDATE_PLAN_CONFIG',
+                limits: limits,
+                rules: rules
+            }, '*'); 
+
+            // After saving, the data is updated, so we need to lock and re-apply highlight
+            toggleEditing(false);
+            
+            if (window.parent.renderLimitsSummary) {
+                window.parent.renderLimitsSummary();
+            }
+            saveMsg.textContent = '✅ Changes Saved and All Tools Updated!';
+            saveMsg.style.color = 'var(--color-success)';
+            setTimeout(() => { 
+                saveMsg.textContent = 'Configuration locked.'; 
+                saveMsg.style.color = 'var(--color-primary)'; 
+            }, 4000);
+            
+            // Since the rules have changed, request them again to refresh the local 'currentRules' and highlight status
+            window.parent.postMessage({ type: 'REQUEST_CONFIG' }, '*');
+        }
+        
+        // --- 3. INITIAL LOAD LOGIC ---
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.parent) {
+                if (window.parent.renderLimitsSummary) {
+                    setTimeout(window.parent.renderLimitsSummary, 50);
+                }
+                
+                // Request the saved configuration data to populate the form fields
+                window.parent.postMessage({ type: 'REQUEST_CONFIG' }, '*');
+            }
+             toggleEditing(false);
+        });
+    </script>
+</body>
+</html>

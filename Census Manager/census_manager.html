@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Census Data Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../iframe_content_styles.css"> 
+    <style>
+        /* Custom styles for Census Manager UI */
+        .calculator-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .step-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007bff; /* Primary Blue */
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .step-header span {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            font-size: 1.1rem;
+            margin-right: 10px;
+        }
+        .btn-primary, .btn-secondary, .btn-accent {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* Style for disabled buttons */
+        .btn-primary:disabled, .btn-secondary:disabled, .btn-accent:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-primary {
+            background-color: #28a745; /* Success Green */
+            color: white;
+        }
+        .btn-primary:not(:disabled):hover {
+            background-color: #1e7e34;
+        }
+        .btn-secondary {
+            background-color: #007bff; /* Primary Blue */
+            color: white;
+        }
+        .btn-secondary:not(:disabled):hover {
+            background-color: #0056b3;
+        }
+        .btn-accent {
+            background-color: #ffc107; /* Warning Yellow */
+            color: #333;
+        }
+        .btn-accent:not(:disabled):hover {
+            background-color: #e0a800;
+        }
+        .mapping-table th, .mapping-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .mapping-table th {
+            background-color: #f4f4f4;
+        }
+        #previewTable {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #previewTable table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #statusMessage {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        
+        <h1 class="text-3xl font-bold mb-1">Employee Census Data Manager</h1>
+        <p class="text-gray-600 mb-6 border-b pb-3">Securely upload, map, and validate client census data for all compliance testing and administrative tasks.</p>
+
+        <!-- Status Message Box -->
+        <div id="statusMessage" class="bg-green-100 text-green-800 border border-green-400">Status</div>
+        
+        <!-- Database Connection Status -->
+        <div id="systemStatus" class="p-3 mb-4 text-sm font-semibold rounded-lg bg-blue-100 text-blue-800">
+            Initializing database connection...
+        </div>
+
+        <!-- Step 1: Upload Data -->
+        <div class="card">
+            <h2 class="step-header"><span>1</span> Upload Client Census File (CSV/Text)</h2>
+            <p class="text-sm text-gray-500 mb-3">Upload a delimited file. The system will detect the header columns.</p>
+            <input type="file" id="censusFile" accept=".csv, .txt" class="p-2 border rounded-lg w-full mb-4">
+            <div class="flex flex-wrap gap-4">
+                <button id="loadCensusBtn" class="btn-secondary" onclick="handleFileLoad()">
+                    Load File & Extract Headers
+                </button>
+                <!-- START FIX: Added disabled attribute here -->
+                <button id="loadSavedBtn" class="btn-accent" onclick="loadCensusData()" disabled>
+                    Load Last Saved Census Data
+                </button>
+                <button id="clearDataBtn" class="btn-accent bg-red-400 text-white hover:bg-red-600" onclick="clearLocalData()">
+                    Clear Local Data
+                </button>
+            </div>
+            
+            <p id="fileStatus" class="mt-3 text-sm font-medium text-gray-700"></p>
+        </div>
+
+        <!-- Step 2: Column Mapping -->
+        <div class="card" id="mappingCard" style="display:none;">
+            <h2 class="step-header"><span>2</span> Map File Headers to TPA Fields</h2>
+            <p class="text-sm text-gray-500 mb-4">Match the headers from your file (left) to the required TPA fields (right).</p>
+            
+            <div id="mappingTableContainer" class="overflow-x-auto">
+                <table class="mapping-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="w-1/3">Required TPA Field</th>
+                            <th class="w-2/3">Map To File Header</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mappingBody">
+                        <!-- Mapping rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="applyMapBtn" class="btn-secondary mt-5 w-full" onclick="applyMapping()">
+                Apply Mapping & Validate Data
+            </button>
+        </div>
+
+        <!-- Step 3: Data Preview and Save -->
+        <div class="card" id="previewCard" style="display:none;">
+            <h2 class="step-header"><span>3</span> Data Preview & Save</h2>
+            <p class="text-sm text-gray-500 mb-4 font-bold" id="previewSummary">Data validation required.</p>
+            
+            <div id="previewTable">
+                <!-- Data preview table will be injected here -->
+            </div>
+            
+            <!-- START FIX: Added disabled attribute here -->
+            <button id="saveCensusBtn" class="btn-primary mt-5 w-full" onclick="saveCensusData()" disabled>
+                💾 Save Validated Census Data to Cloud
+            </button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // --- SECURE FIREBASE CONFIGURATION (The TPA Data Solution) ---
+        let db = null;
+        let auth = null;
+        let userId = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // CRITICAL: PRIVATE user-scoped data path for security
+        const CENSUS_DOC_PATH = (uid) => `artifacts/${appId}/users/${uid}/census_data/latest_client_census`;
+        
+        // Required fields for TPA compliance testing
+        const REQUIRED_FIELDS = [
+            { key: 'EmployeeID', label: 'Employee ID (Unique)', required: true },
+            { key: 'FirstName', label: 'First Name', required: true },
+            { key: 'LastName', label: 'Last Name', required: true },
+            { key: 'BirthDate', label: 'Date of Birth (YYYY-MM-DD)', required: true },
+            { key: 'HireDate', label: 'Date of Hire (YYYY-MM-DD)', required: true },
+            { key: 'AnnualCompensation', label: 'Annual Compensation ($)', required: true, type: 'number' },
+            { key: 'ElectiveDeferral', label: 'Elective Deferral ($)', required: false, type: 'number' },
+            { key: 'EmployerMatch', label: 'Employer Match ($)', required: false, type: 'number' },
+            { key: 'HCEStatus', label: 'HCE Status (Y/N/T)', required: false },
+        ];
+        
+        let rawCensusData = []; // Raw data array of objects from the file
+        let fileHeaders = []; // Headers extracted from the file
+        let mappedCensusData = []; // Final, mapped and validated data
+        
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Imports for Firebase services
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        setLogLevel('Debug');
+        
+        /**
+         * Toggles the disabled state of the database interaction buttons.
+         * @param {boolean} enabled - true to enable, false to disable.
+         */
+        function setDbButtonsEnabled(enabled) {
+            const loadBtn = document.getElementById('loadSavedBtn');
+            const saveBtn = document.getElementById('saveCensusBtn');
+            if (loadBtn) loadBtn.disabled = !enabled;
+            if (saveBtn) saveBtn.disabled = !enabled;
+        }
+
+        async function initializeFirebase() {
+            // Ensure buttons are disabled until connection is confirmed
+            setDbButtonsEnabled(false); 
+            
+            try {
+                if (!firebaseConfig) {
+                    throw new Error("Firebase configuration is missing.");
+                }
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Secure Authentication
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                
+                document.getElementById('systemStatus').textContent = `✅ Database Connected (Private User ID: ${userId})`;
+                setDbButtonsEnabled(true); // <--- FIX: Enable buttons on success
+
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                document.getElementById('systemStatus').textContent = '❌ Error connecting to database. Saving/Loading disabled.';
+                // Buttons remain disabled on failure
+            }
+        }
+
+        function showMessage(message, type = 'success') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `fixed top-20 right-20 z-10 p-4 rounded-lg font-bold shadow-xl`;
+            
+            if (type === 'success') {
+                statusMessage.classList.add('bg-green-100', 'text-green-800', 'border-green-400');
+            } else if (type === 'error') {
+                statusMessage.classList.add('bg-red-100', 'text-red-800', 'border-red-400');
+            } else if (type === 'info') {
+                 statusMessage.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-400');
+            }
+            
+            statusMessage.style.display = 'block';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 6000);
+        }
+
+        // --- STEP 1: FILE LOADING ---
+
+        /**
+         * Simple CSV/TSV parser. Assumes the first row is the header.
+         * @param {string} text - The raw file content.
+         * @returns {{headers: string[], data: object[]}}
+         */
+        function parseCensusFile(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length === 0) return { headers: [], data: [] };
+            
+            // Auto-detect delimiter: check for comma first, then tab
+            const delimiter = lines[0].includes('\t') ? '\t' : ',';
+            
+            const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                const values = lines[i].split(delimiter);
+                const row = {};
+                
+                if (values.length !== headers.length) {
+                    console.warn(`Skipping row ${i} due to column mismatch: ${lines[i]}`);
+                    continue;
+                }
+
+                for (let j = 0; j < headers.length; j++) {
+                    row[headers[j]] = values[j].trim().replace(/"/g, '');
+                }
+                data.push(row);
+            }
+            return { headers, data };
+        }
+
+        function handleFileLoad() {
+            const fileInput = document.getElementById('censusFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a CSV or text file first.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const { headers, data } = parseCensusFile(e.target.result);
+                rawCensusData = data;
+                fileHeaders = headers;
+                
+                document.getElementById('fileStatus').textContent = `File Loaded: ${file.name} | Records: ${data.length} | Headers: ${headers.length}`;
+                showMessage(`File loaded with ${data.length} records. Proceed to Step 2.`, 'success');
+                renderMappingTable();
+                
+                document.getElementById('mappingCard').style.display = 'block';
+                document.getElementById('previewCard').style.display = 'none';
+            };
+            reader.onerror = () => showMessage('Error reading file.', 'error');
+            reader.readAsText(file);
+        }
+
+        // --- STEP 2: MAPPING ---
+
+        function renderMappingTable() {
+            const mappingBody = document.getElementById('mappingBody');
+            mappingBody.innerHTML = '';
+            
+            REQUIRED_FIELDS.forEach(field => {
+                const isRequiredText = field.required ? ' (Required)' : '';
+                
+                let optionsHtml = fileHeaders.map(header => 
+                    `<option value="${header}" ${header.toLowerCase().includes(field.key.toLowerCase().replace(/id|name/g, '')) ? 'selected' : ''}>${header}</option>`
+                ).join('');
+                
+                // Add a "Do Not Map" option
+                optionsHtml = `<option value="">-- Do Not Map --</option>` + optionsHtml;
+
+                const row = `
+                    <tr>
+                        <td class="font-semibold text-gray-700">${field.label}${isRequiredText}</td>
+                        <td>
+                            <select data-field-key="${field.key}" class="p-2 border rounded-lg w-full bg-gray-50">
+                                ${optionsHtml}
+                            </select>
+                        </td>
+                    </tr>
+                `;
+                mappingBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function applyMapping() {
+            const mappings = {};
+            document.querySelectorAll('#mappingBody select').forEach(select => {
+                const requiredKey = select.getAttribute('data-field-key');
+                const fileHeader = select.value;
+                mappings[requiredKey] = fileHeader;
+            });
+            
+            let validationError = false;
+            let errorMessages = [];
+            
+            // 1. Check for required fields
+            REQUIRED_FIELDS.filter(f => f.required).forEach(field => {
+                if (!mappings[field.key]) {
+                    validationError = true;
+                    errorMessages.push(`Missing mapping for required field: ${field.label}`);
+                }
+            });
+
+            if (validationError) {
+                showMessage(`Mapping Error: ${errorMessages.join('; ')}`, 'error');
+                return;
+            }
+            
+            // 2. Perform mapping and validation on data
+            mappedCensusData = [];
+            let invalidRecords = 0;
+
+            rawCensusData.forEach((row, index) => {
+                const newRow = {};
+                let isValid = true;
+
+                REQUIRED_FIELDS.forEach(field => {
+                    const fileHeader = mappings[field.key];
+                    const value = row[fileHeader];
+
+                    if (field.required && !value) {
+                        isValid = false;
+                    }
+                    
+                    if (value) {
+                        if (field.type === 'number') {
+                            const num = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+                            if (isNaN(num)) {
+                                isValid = false;
+                            }
+                            newRow[field.key] = num;
+                        } else {
+                            newRow[field.key] = value;
+                        }
+                    } else {
+                         newRow[field.key] = null; // Set null if not mapped/present
+                    }
+                });
+
+                if (isValid) {
+                    mappedCensusData.push(newRow);
+                } else {
+                    invalidRecords++;
+                }
+            });
+
+            if (invalidRecords > 0) {
+                 showMessage(`Mapping complete. ${invalidRecords} records were skipped due to missing required data or invalid formats.`, 'info');
+            } else {
+                 showMessage(`Mapping complete. All ${mappedCensusData.length} records are valid.`, 'success');
+            }
+            
+            renderDataPreview(invalidRecords);
+            document.getElementById('previewCard').style.display = 'block';
+        }
+
+        // --- STEP 3: PREVIEW AND SAVE ---
+
+        function renderDataPreview(invalidCount) {
+            const previewContainer = document.getElementById('previewTable');
+            const summary = document.getElementById('previewSummary');
+
+            summary.innerHTML = `Records Validated: <span class="text-green-600 font-extrabold">${mappedCensusData.length}</span> | Records Skipped: <span class="text-red-600 font-extrabold">${invalidCount}</span>`;
+
+            if (mappedCensusData.length === 0) {
+                previewContainer.innerHTML = '<p class="p-4 text-center text-red-500">No valid records to preview.</p>';
+                document.getElementById('saveCensusBtn').disabled = true;
+                return;
+            }
+            // Only enable save button if we have data AND the database is connected
+            document.getElementById('saveCensusBtn').disabled = !db || !userId; 
+
+            const headers = REQUIRED_FIELDS.map(f => `<th>${f.label.split('(')[0].trim()}</th>`).join('');
+            
+            const rows = mappedCensusData.slice(0, 10).map(row => {
+                const cells = REQUIRED_FIELDS.map(field => {
+                    let value = row[field.key];
+                    // Format currency fields for display
+                    if (field.type === 'number' && typeof value === 'number') {
+                        value = value.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 });
+                    }
+                    return `<td>${value === null ? '-' : value}</td>`;
+                }).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+            
+            previewContainer.innerHTML = `
+                <table class="text-sm">
+                    <thead><tr>${headers}</tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                <p class="text-xs text-center p-2 bg-gray-50">Showing first 10 records of ${mappedCensusData.length} total valid records.</p>
+            `;
+        }
+
+        async function saveCensusData() {
+            if (!db || !userId) {
+                showMessage('Database is not ready. Please check the system status.', 'error');
+                return;
+            }
+
+            if (mappedCensusData.length === 0) {
+                showMessage('Cannot save: No valid census data to save.', 'error');
+                return;
+            }
+
+            const saveButton = document.getElementById('saveCensusBtn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                // IMPORTANT: Stringify the array before saving to avoid Firestore complex array limitations
+                const censusJSON = JSON.stringify(mappedCensusData);
+                
+                const docRef = doc(db, CENSUS_DOC_PATH(userId));
+                
+                await setDoc(docRef, {
+                    // Store the census data as a string
+                    censusData: censusJSON, 
+                    recordCount: mappedCensusData.length,
+                    lastUpdated: new Date().toISOString(),
+                    updatedBy: userId 
+                });
+
+                showMessage(`Successfully saved ${mappedCensusData.length} census records securely to your private cloud storage.`, 'success');
+
+            } catch (error) {
+                console.error("Save Error:", error);
+                showMessage(`Error saving data: ${error.message}.`, 'error');
+            } finally {
+                saveButton.textContent = '💾 Save Validated Census Data to Cloud';
+                // Re-enable only if DB is still ready (which it should be)
+                if (db && userId) saveButton.disabled = false;
+            }
+        }
+
+        async function loadCensusData() {
+            if (!db || !userId) {
+                showMessage('Database is not ready. Please check the system status.', 'error');
+                return;
+            }
+
+            const loadButton = document.getElementById('loadSavedBtn');
+            loadButton.disabled = true;
+            loadButton.textContent = 'Loading...';
+
+            try {
+                const docRef = doc(db, CENSUS_DOC_PATH(userId));
+                const docSnapshot = await getDoc(docRef);
+
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    
+                    if (data.censusData) {
+                        // CRITICAL: Parse the stringified JSON data back into an array
+                        mappedCensusData = JSON.parse(data.censusData);
+                        rawCensusData = mappedCensusData; // Use mapped data as the source
+                        fileHeaders = REQUIRED_FIELDS.map(f => f.key); // Use TPA keys as headers
+
+                        renderDataPreview(0); // Load directly to preview
+                        
+                        document.getElementById('fileStatus').textContent = `Loaded from Cloud: ${mappedCensusData.length} records.`;
+                        document.getElementById('mappingCard').style.display = 'none'; // Skip mapping step
+                        document.getElementById('previewCard').style.display = 'block';
+
+                        showMessage(`Loaded ${mappedCensusData.length} census records saved on ${new Date(data.lastUpdated).toLocaleDateString()}.`, 'success');
+                    } else {
+                        showMessage('Saved document exists but contains no census data.', 'error');
+                    }
+                } else {
+                    showMessage('No previously saved census data found for your user ID.', 'info');
+                }
+
+            } catch (error) {
+                console.error("Load Error:", error);
+                showMessage(`Error loading data: ${error.message}.`, 'error');
+            } finally {
+                loadButton.textContent = 'Load Last Saved Census Data';
+                // Re-enable only if DB is still ready
+                if (db && userId) loadButton.disabled = false;
+            }
+        }
+        
+        function clearLocalData() {
+            rawCensusData = [];
+            fileHeaders = [];
+            mappedCensusData = [];
+            document.getElementById('fileStatus').textContent = 'Local data cleared.';
+            document.getElementById('mappingBody').innerHTML = '';
+            document.getElementById('mappingCard').style.display = 'none';
+            document.getElementById('previewCard').style.display = 'none';
+            document.getElementById('previewTable').innerHTML = '';
+            document.getElementById('previewSummary').textContent = 'Data validation required.';
+            document.getElementById('censusFile').value = '';
+            showMessage('Local census data reset. Ready for new file upload.', 'info');
+        }
+
+        // Initialize on load
+        window.onload = initializeFirebase;
+
+        // Expose functions globally for HTML access (since we are using type="module")
+        window.handleFileLoad = handleFileLoad;
+        window.applyMapping = applyMapping;
+        window.saveCensusData = saveCensusData;
+        window.loadCensusData = loadCensusData;
+        window.clearLocalData = clearLocalData;
+
+    </script>
+</body>
+</html>
