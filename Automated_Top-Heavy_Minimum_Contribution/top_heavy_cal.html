@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADP/ACP Nondiscrimination Test & Correction Calculator</title>
+    <title>Top-Heavy Minimum Contribution Report</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Papa Parse for CSV handling -->
@@ -17,9 +17,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
         :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --secondary: #10b981;
+            --primary: #f59e0b; /* amber-500 */
+            --primary-dark: #d97706; /* amber-600 */
+            --secondary: #3b82f6; /* blue-500 */
             --danger: #ef4444;
             --bg-light: #f9fafb;
             --text-dark: #1f2937;
@@ -64,7 +64,7 @@
 
         input[type="number"]:focus, input[type="file"]:focus, input[type="text"]:focus, select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
             outline: none;
         }
         
@@ -116,9 +116,9 @@
         }
         
         .result-info {
-            background-color: #eff6ff; /* blue-50 */
-            color: #1e40af; /* blue-800 */
-            border: 1px solid #bfdbfe; /* blue-200 */
+            background-color: #fffbeb; /* amber-50 */
+            color: #b45309; /* amber-800 */
+            border: 1px solid #fde68a; /* amber-200 */
         }
 
         .result-pass {
@@ -170,7 +170,7 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            cursor: pointer; /* Make headers clickable */
+            cursor: pointer;
             user-select: none;
         }
         .error-message {
@@ -178,20 +178,25 @@
             font-weight: 600;
             margin-top: 15px;
         }
+        
+        /* Highlighting rows for Key Employees */
+        .key-employee-true {
+            background-color: #fff7e6; /* light orange/yellow background */
+        }
     </style>
 </head>
 <body>
 
     <div class="calculator-container">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">ADP/ACP Nondiscrimination Test & Correction Calculator</h1>
-        <p class="text-gray-600 mb-6 description">Calculates the ADP/ACP test results and determines the required corrective distribution/refund for Highly Compensated Employees (HCEs).</p>
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Top-Heavy Minimum Contribution Report</h1>
+        <p class="text-gray-600 mb-6 description">Calculates the required minimum contribution for non-Key Employees based on the plan's top-heavy status (IRC Sec. 416).</p>
         
         <div class="flex justify-between items-center mb-6">
             <div class="result-box result-info w-2/3" id="current-limits-display">
                 <p>Loading plan configuration...</p>
             </div>
             <!-- START OVER BUTTON -->
-            <button id="start-over-button" class="btn btn-danger flex items-center justify-center w-1/4" title="Clears all data, inputs, and resets the calculator to Step 1.">
+            <button id="start-over-button" onclick="startOver()" class="btn btn-danger flex items-center justify-center w-1/4" title="Clears all data, inputs, and resets the calculator to Step 1.">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="mr-2">
                     <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
                     <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
@@ -203,33 +208,38 @@
 
         <div class="step-indicator">
             <div class="step-item active" id="step-1-indicator" onclick="showStep(1)">1. Test Inputs</div>
-            <div class="step-item" id="step-2-indicator" onclick="showStep(2)">2. Data Grid</div>
-            <div class="step-item" id="step-3-indicator" onclick="showStep(3)">3. Results & Correction</div>
+            <div class="step-item" id="step-2-indicator" onclick="showStep(2)">2. Employee Data</div>
+            <div class="step-item" id="step-3-indicator" onclick="showStep(3)">3. Final Report</div>
         </div>
 
         <div id="calculator-content">
             <!-- STEP 1: TEST INPUTS -->
             <div id="step-1-inputs" class="card">
-                <h2 class="text-xl font-bold mb-4">Step 1: Plan & NHCE Data</h2>
+                <h2 class="text-xl font-bold mb-4">Step 1: Top-Heavy Status and Minimum Rate</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="input-group">
-                        <label for="nhceAdp">NHCE Average Deferral Percentage (ADP) (%)</label>
-                        <input type="number" id="nhceAdp" value="4.0" min="0" max="100" step="0.01" class="text-lg">
-                        <small class="text-gray-500">The average deferral percentage for Non-Highly Compensated Employees.</small>
+                        <label for="isTopHeavy">Plan is Top-Heavy?</label>
+                        <select id="isTopHeavy" onchange="updateMinRateOptions()" class="text-lg">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                        <small class="text-gray-500">Determines if minimum contributions are required.</small>
                     </div>
+                    
                     <div class="input-group">
-                        <label for="nhceAcp">NHCE Average Contribution Percentage (ACP) (%)</label>
-                        <input type="number" id="nhceAcp" value="3.0" min="0" max="100" step="0.01" class="text-lg">
-                        <small class="text-gray-500">The average matching/after-tax contribution percentage for NHCEs.</small>
+                        <label for="keyEmployeeStatus">Include Key Employee Status?</label>
+                        <select id="keyEmployeeStatus" class="text-lg">
+                            <option value="Determined">Key Status Determined in Data</option>
+                            <option value="AllNonKey">Assume All Employees are Non-Key</option>
+                        </select>
+                        <small class="text-gray-500">Choose this if your data includes a 'Key Employee' column.</small>
                     </div>
-                </div>
-                
-                <div class="mt-6">
-                    <label class="block mb-2 font-semibold">Plan Status</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="checkbox" id="isSafeHarbor" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <label for="isSafeHarbor" class="text-gray-700 font-normal">Check if the plan is a **Safe Harbor** plan (Bypasses ADP/ACP test).</label>
+
+                    <div class="input-group">
+                        <label for="minRatePct">Required Minimum Rate (%)</label>
+                        <input type="number" id="minRatePct" value="3.0" min="0" max="100" step="0.01" class="text-lg">
+                        <small class="text-gray-500">Typically 3.0% or 4.0% if an HCE deferral is greater than 3.0%.</small>
                     </div>
                 </div>
 
@@ -240,17 +250,17 @@
                 </div>
             </div>
 
-            <!-- STEP 2: DATA GRID/MAPPING CONTAINER -->
+            <!-- STEP 2: DATA GRID/MAPPING CONTAINER (Identical structure to previous tools) -->
             <div id="step-2-data-grid" class="card hidden">
-                <h2 class="text-xl font-bold mb-4">Step 2: HCE Data Import/Entry & Review</h2>
+                <h2 class="text-xl font-bold mb-4">Step 2: Employee Data Import & Review</h2>
 
                 <!-- SUB-STEP 2A: CSV IMPORT CONTROLS -->
                 <div id="data-import-controls">
-                    <p class="text-sm text-gray-500 mb-4">You must input or upload data for all Highly Compensated Employees (HCEs).</p>
+                    <p class="text-sm text-gray-500 mb-4">You must input or upload data for **all** employees (Key and Non-Key).</p>
                     
                     <div class="flex space-x-4 mb-6">
                         <div class="input-group w-1/2">
-                            <label for="csvFileInput">Upload HCE Data (CSV)</label>
+                            <label for="csvFileInput">Upload All Employee Data (CSV)</label>
                             <input type="file" id="csvFileInput" accept=".csv" class="py-2">
                         </div>
                         <div class="w-1/2 flex items-end">
@@ -278,12 +288,12 @@
 
                 <!-- SUB-STEP 2C: DATA GRID AND FILTERS (Hidden initially or if no data) -->
                 <div id="data-grid-view">
-                    <h3 class="text-lg font-semibold mt-6 mb-3">HCE Data Grid (Editable)</h3>
+                    <h3 class="text-lg font-semibold mt-6 mb-3">Employee Data Grid (Editable)</h3>
                     
                     <!-- FILTER INPUT -->
                     <div class="input-group mb-4">
-                        <label for="dataFilter">Filter HCE Data (Name or Compensation)</label>
-                        <input type="text" id="dataFilter" oninput="filterDataGrid()" placeholder="Search by name, compensation, or contribution amount..." class="text-base">
+                        <label for="dataFilter">Filter Employee Data (Name, Rate, or Status)</label>
+                        <input type="text" id="dataFilter" oninput="filterDataGrid()" placeholder="Search by name, compensation, or Key status..." class="text-base">
                     </div>
                     
                     <div class="overflow-x-auto border rounded-lg">
@@ -291,102 +301,70 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th onclick="sortDataGrid('name')">Name <span id="sort-name"></span></th>
+                                    <th onclick="sortDataGrid('isKey')">Key Employee <span id="sort-isKey"></span></th>
+                                    <th onclick="sortDataGrid('isHce')">HCE Status <span id="sort-isHce"></span></th>
                                     <th onclick="sortDataGrid('compensation')">Compensation ($) <span id="sort-compensation">&#x25BC;</span></th>
-                                    <th onclick="sortDataGrid('deferral')">Elective Deferral ($) <span id="sort-deferral"></span></th>
-                                    <th onclick="sortDataGrid('match')">Matching/After-Tax Contribution ($) <span id="sort-match"></span></th>
+                                    <th onclick="sortDataGrid('contribution')">Allocation/Contribution ($) <span id="sort-contribution"></span></th>
+                                    <th onclick="sortDataGrid('rate')">Allocation Rate (%) <span id="sort-rate"></span></th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="dataGridBody" class="bg-white divide-y divide-gray-200">
                                 <!-- Data rows will be inserted here -->
-                                <tr><td colspan="5" class="text-center py-4 text-gray-500">No HCE data loaded. Please import a CSV or click 'Add HCE'.</td></tr>
+                                <tr><td colspan="7" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click 'Add Employee'.</td></tr>
                             </tbody>
                         </table>
                     </div>
                     
                     <div class="mt-4 flex justify-between items-center">
                         <button onclick="addRow(null)" class="btn btn-secondary">
-                            + Add HCE Manually
+                            + Add Employee Manually
                         </button>
-                        <button onclick="showStep(3)" class="btn btn-primary" id="run-test-button" disabled>
-                            Run ADP/ACP Test (Step 3)
+                        <button onclick="showStep(3)" class="btn btn-primary" id="run-report-button" disabled>
+                            Generate Top-Heavy Report (Step 3)
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- STEP 3: RESULTS AND CORRECTION -->
+            <!-- STEP 3: REPORT SUMMARY AND DETAILS -->
             <div id="step-3-results" class="card hidden">
-                <h2 class="text-xl font-bold mb-4">Step 3: Test Results & Correction</h2>
+                <h2 class="text-xl font-bold mb-4">Step 3: Top-Heavy Minimum Contribution Report</h2>
                 
-                <!-- Test Summary -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div id="adpTestSummaryBox" class="result-box result-info">
-                        <p class="font-bold text-lg">ADP Test Status: <span id="adpTestSummary">N/A</span></p>
-                    </div>
-                    <div id="acpTestSummaryBox" class="result-box result-info">
-                        <p class="font-bold text-lg">ACP Test Status: <span id="acpTestSummary">N/A</span></p>
+                <!-- Report Summary -->
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div id="overallReportSummaryBox" class="result-box result-info">
+                        <p class="font-bold text-lg">Plan Top-Heavy Status: <span id="topHeavyStatusDisplay">No</span></p>
+                        <p id="minRateDisplay" class="mt-2 text-sm text-gray-700">Required Minimum Contribution Rate: 0.0%</p>
                     </div>
                 </div>
 
-                <!-- ADP Correction Table -->
-                <h3 class="text-lg font-semibold mt-6 mb-3">ADP Correction (Elective Deferrals)</h3>
+                <!-- Report Detail Table -->
+                <h3 class="text-lg font-semibold mt-6 mb-3">Non-Key Employee Contribution Analysis (Required if Top-Heavy)</h3>
                 <div class="overflow-x-auto border rounded-lg">
                     <table>
                         <thead>
                             <tr>
-                                <th>HCE Name</th>
-                                <th>HCE ADP (%)</th>
-                                <th>Required Refund ($)</th>
-                                <th>Corrected ADP (%)</th>
+                                <th>Name</th>
+                                <th>HCE Status</th>
+                                <th>Compensation ($)</th>
+                                <th>Actual Rate (%)</th>
+                                <th>Required Minimum ($)</th>
+                                <th>Contribution Shortfall ($)</th>
                             </tr>
                         </thead>
-                        <tbody id="adpResultBody">
-                            <tr><td colspan="4" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>
+                        <tbody id="reportResultBody">
+                            <tr><td colspan="6" class="text-center py-4 text-gray-500">Generate report after importing data.</td></tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- ACP Correction Table -->
-                <h3 class="text-lg font-semibold mt-6 mb-3">ACP Correction (Matching/After-Tax)</h3>
-                <div class="overflow-x-auto border rounded-lg">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>HCE Name</th>
-                                <th>HCE ACP (%)</th>
-                                <th>Required Refund ($)</th>
-                                <th>Corrected ACP (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="acpResultBody">
-                             <tr><td colspan="4" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Combined Correction Summary -->
-                <h3 class="text-lg font-semibold mt-6 mb-3">Combined HCE Correction Summary</h3>
-                <div class="overflow-x-auto border rounded-lg">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>HCE Name</th>
-                                <th>Total Refund ($)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="correctionBody">
-                             <tr><td colspan="2" class="text-center py-4 text-gray-500">Combined correction will appear here.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                
                 <div class="mt-6 flex justify-between">
                     <button onclick="exportDataToCSV()" class="btn btn-secondary">
                         Export Data Grid to CSV
                     </button>
                     <button id="export-button" onclick="exportResultsToPDF()" class="btn btn-primary">
-                        Export Results to PDF
+                        Export Report to PDF
                     </button>
                 </div>
             </div>
@@ -397,7 +375,7 @@
         <!-- PDF Loading Overlay -->
         <div id="pdf-loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center;">
             <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2);">
-                <div class="spinner" style="border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #4f46e5; animation: spin 1s ease infinite; margin: 0 auto 15px;"></div>
+                <div class="spinner" style="border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s ease infinite; margin: 0 auto 15px;"></div>
                 <p style="font-weight: bold; color: #333;">Generating PDF Report...</p>
                 <p style="font-size: 0.9em; color: #666;">This may take a moment for large reports.</p>
             </div>
@@ -414,29 +392,20 @@
 
     <script>
         // --- GLOBAL STATE ---
-        let systemData = [];      // Final, mapped, and cleaned HCE data
+        let systemData = [];      // Final, mapped, and cleaned Employee data
         let rawCsvData = [];      // Raw data from the last uploaded CSV
         let csvHeaders = [];      // Headers from the last uploaded CSV
-        let hceCount = 0;
         let currentStep = 1;
         let currentFilter = '';
-        let currentSort = { column: 'compensation', direction: 'desc' }; // Default sort by compensation, descending
-
-        // Fallback limits and rules for ADP/ACP
-        let CURRENT_PLAN_RULES = null;
-        const FALLBACK_LIMITS_KEYS = {
-            hce_comp_test: 155000, 
-        };
-        const FALLBACK_RULES_KEYS = {
-            safe_harbor: false // Default to NOT Safe Harbor
-        };
+        let currentSort = { column: 'compensation', direction: 'desc' }; // Default sort by compensation
 
         // Required system fields for the calculator
         const REQUIRED_FIELDS = [
-            { id: 'name', label: 'Name', type: 'text', required: true, internalKey: 'name' },
+            { id: 'name', label: 'Employee Name', type: 'text', required: true, internalKey: 'name' },
+            { id: 'isKey', label: 'Key Employee Status (Yes/No)', type: 'boolean', required: true, internalKey: 'isKey' },
+            { id: 'isHce', label: 'HCE Status (Yes/No)', type: 'boolean', required: true, internalKey: 'isHce' },
             { id: 'compensation', label: 'Compensation ($)', type: 'number', required: true, internalKey: 'compensation' },
-            { id: 'deferral', label: 'Elective Deferral ($)', type: 'number', required: true, internalKey: 'deferral' },
-            { id: 'match', label: 'Matching/After-Tax Contribution ($)', type: 'number', required: true, internalKey: 'match' }
+            { id: 'contribution', label: 'Total Allocation/Contribution ($)', type: 'number', required: true, internalKey: 'contribution' }
         ];
 
         // --- HELPER FUNCTIONS ---
@@ -445,39 +414,10 @@
            return '$' + Math.abs(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
         
-        function getLimit(key) {
-            let value = FALLBACK_LIMITS_KEYS[key];
-            if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.LIMITS && CURRENT_PLAN_RULES.LIMITS[key] !== undefined) {
-                value = CURRENT_PLAN_RULES.LIMITS[key];
-            }
-            if (typeof value === 'number' && !isNaN(value)) {
-                return value;
-            }
-            return FALLBACK_LIMITS_KEYS[key];
+        function formatPercent(value) {
+           return value.toFixed(2) + '%';
         }
 
-        function getRule(key) {
-            let value = FALLBACK_RULES_KEYS[key];
-            if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.RULES && CURRENT_PLAN_RULES.RULES[key] !== undefined) {
-                value = CURRENT_PLAN_RULES.RULES[key];
-            }
-            return value;
-        }
-
-        function displayFallbackLimits() {
-            const hceCompTest = getLimit('hce_comp_test');
-            const safeHarbor = getRule('safe_harbor');
-            
-            document.getElementById('current-limits-display').innerHTML = `
-                <p><strong>Plan Limits & Rules:</strong></p>
-                <ul>
-                    <li>HCE Compensation Threshold: <strong>${formatCurrency(hceCompTest)}</strong></li>
-                    <li>Safe Harbor Status: <strong>${safeHarbor ? 'Yes (ADP/ACP Test Waived)' : 'No (ADP/ACP Test Required)'}</strong></li>
-                </ul>
-            `;
-            document.getElementById('isSafeHarbor').checked = safeHarbor;
-        }
-        
         function showError(message) {
             document.getElementById('error-message').textContent = message;
         }
@@ -503,42 +443,69 @@
             showError(''); // Clear errors when changing steps
             
             if (step === 2) {
-                // Ensure the correct view is shown in Step 2
                 if (systemData.length === 0) {
                     showDataImportControls();
                 } else {
                     showDataGridReview();
-                    renderDataGrid();
+                    calculateAndRenderDataGrid();
                 }
+            } else if (step === 3) {
+                 generateReport();
+            }
+        }
+
+        function updateMinRateOptions() {
+            const isTopHeavy = document.getElementById('isTopHeavy').value === 'Yes';
+            const minRateInput = document.getElementById('minRatePct');
+            
+            // Set the typical default rate based on Top-Heavy status
+            if (isTopHeavy) {
+                minRateInput.value = '3.0';
+                minRateInput.parentNode.querySelector('small').textContent = 'Typically 3.0% or 4.0% if an HCE deferral is greater than 3.0%.';
+            } else {
+                minRateInput.value = '0.0';
+                minRateInput.parentNode.querySelector('small').textContent = 'Minimum rate is 0.0% if the plan is not top-heavy.';
             }
         }
         
         // --- DATA GRID FILTERING AND SORTING ---
 
+        function calculateRates(data) {
+             return data.map(record => ({
+                 ...record,
+                 rate: record.compensation > 0 ? (record.contribution / record.compensation) * 100 : 0
+             }));
+        }
+
         function applyFilterAndSort(data) {
-            // 1. Filter
+            let processedData = calculateRates(data);
             const filterText = currentFilter.toLowerCase().trim();
-            let filteredData = data;
+            let filteredData = processedData;
 
             if (filterText) {
-                filteredData = data.filter(record => 
-                    // Check name (string)
+                filteredData = processedData.filter(record => 
                     record.name.toLowerCase().includes(filterText) ||
-                    // Check numeric fields (convert to string for searching)
+                    (record.isKey ? 'key' : 'non-key').includes(filterText) ||
+                    (record.isHce ? 'hce' : 'nhce').includes(filterText) ||
                     String(record.compensation).includes(filterText) ||
-                    String(record.deferral).includes(filterText) ||
-                    String(record.match).includes(filterText)
+                    String(record.contribution).includes(filterText) ||
+                    String(record.rate.toFixed(2)).includes(filterText)
                 );
             }
 
-            // 2. Sort
             const { column, direction } = currentSort;
             
             return filteredData.sort((a, b) => {
-                const aVal = a[column];
-                const bVal = b[column];
+                let aVal = a[column];
+                let bVal = b[column];
 
                 let comparison = 0;
+                
+                if (column === 'isKey' || column === 'isHce') {
+                    aVal = aVal ? 1 : 0;
+                    bVal = bVal ? 1 : 0;
+                }
+                
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
                     comparison = aVal - bVal;
                 } else {
@@ -551,19 +518,17 @@
         
         function filterDataGrid() {
             currentFilter = document.getElementById('dataFilter').value;
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
 
         function sortDataGrid(column) {
             if (currentSort.column === column) {
-                // Toggle direction
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
-                // New column, default to descending for numbers, ascending for text (Name)
                 currentSort.column = column;
-                currentSort.direction = (column === 'name') ? 'asc' : 'desc';
+                currentSort.direction = (['compensation', 'contribution', 'rate'].includes(column)) ? 'desc' : 'asc';
             }
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
 
         function updateSortIndicators() {
@@ -579,81 +544,99 @@
 
         // --- DATA GRID MANAGEMENT ---
         
-        function renderDataGrid() {
+        function calculateAndRenderDataGrid() {
             const dataGridBody = document.getElementById('dataGridBody');
             dataGridBody.innerHTML = '';
             
             const filteredAndSortedData = applyFilterAndSort(systemData);
-            hceCount = filteredAndSortedData.length;
+            const totalEmployees = filteredAndSortedData.length;
 
-            updateSortIndicators(); // Update sort arrows
+            updateSortIndicators();
 
-            if (hceCount === 0 && systemData.length === 0) {
-                 dataGridBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No HCE data loaded. Please import a CSV or click \'Add HCE\'.</td></tr>';
-                 document.getElementById('run-test-button').disabled = true;
+            if (totalEmployees === 0 && systemData.length === 0) {
+                 dataGridBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click \'Add Employee\'.</td></tr>';
+                 document.getElementById('run-report-button').disabled = true;
                  return;
-            } else if (hceCount === 0 && systemData.length > 0) {
-                 dataGridBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No HCE records matched the current filter criteria.</td></tr>';
-                 document.getElementById('run-test-button').disabled = false;
+            } else if (totalEmployees === 0 && systemData.length > 0) {
+                 dataGridBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No records matched the current filter criteria.</td></tr>';
+                 document.getElementById('run-report-button').disabled = false;
                  return;
             }
             
-            // Note: We iterate over filtered and sorted data, but use the original index for update/delete
             filteredAndSortedData.forEach(record => {
-                // Find original index to link back to systemData
-                const originalIndex = systemData.findIndex(d => d.name === record.name && d.compensation === record.compensation); 
+                const originalIndex = systemData.findIndex(d => d.id === record.id); 
                 
                 const row = dataGridBody.insertRow();
                 row.id = `row-${originalIndex}`;
+                row.classList.add(record.isKey ? 'key-employee-true' : '');
                 
                 // Name Input
                 let cell = row.insertCell();
                 cell.innerHTML = `<input type="text" value="${record.name}" onchange="updateRecord(${originalIndex}, 'name', this.value)" class="p-2 border rounded-md">`;
+                
+                // Key Status Select
+                cell = row.insertCell();
+                cell.innerHTML = `
+                    <select onchange="updateRecord(${originalIndex}, 'isKey', this.value === 'Yes')" class="p-2 border rounded-md">
+                        <option value="Yes" ${record.isKey ? 'selected' : ''}>Yes</option>
+                        <option value="No" ${!record.isKey ? 'selected' : ''}>No</option>
+                    </select>
+                `;
+                
+                // HCE Status Select
+                cell = row.insertCell();
+                cell.innerHTML = `
+                    <select onchange="updateRecord(${originalIndex}, 'isHce', this.value === 'Yes')" class="p-2 border rounded-md">
+                        <option value="Yes" ${record.isHce ? 'selected' : ''}>Yes</option>
+                        <option value="No" ${!record.isHce ? 'selected' : ''}>No</option>
+                    </select>
+                `;
 
                 // Compensation Input
                 cell = row.insertCell();
                 cell.innerHTML = `<input type="number" value="${record.compensation}" min="0" onchange="updateRecord(${originalIndex}, 'compensation', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
                 
-                // Deferral Input
+                // Contribution Input
                 cell = row.insertCell();
-                cell.innerHTML = `<input type="number" value="${record.deferral}" min="0" onchange="updateRecord(${originalIndex}, 'deferral', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
+                cell.innerHTML = `<input type="number" value="${record.contribution}" min="0" onchange="updateRecord(${originalIndex}, 'contribution', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
                 
-                // Match/After-Tax Input
+                // Rate Display
                 cell = row.insertCell();
-                cell.innerHTML = `<input type="number" value="${record.match}" min="0" onchange="updateRecord(${originalIndex}, 'match', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
+                cell.className = 'font-bold';
+                cell.textContent = formatPercent(record.rate);
 
                 // Action Button
                 cell = row.insertCell();
                 cell.innerHTML = `<button onclick="deleteRow(${originalIndex})" class="btn btn-danger py-1 px-3">Delete</button>`;
             });
             
-            document.getElementById('run-test-button').disabled = systemData.length === 0;
+            document.getElementById('run-report-button').disabled = systemData.length === 0;
             showDataGridReview();
         }
 
         function addRow(record = null) {
             const newRecord = record || {
-                name: `HCE ${systemData.length + 1}`,
+                id: crypto.randomUUID(),
+                name: `Employee ${systemData.length + 1}`,
                 compensation: 50000,
-                deferral: 5000,
-                match: 1500
+                contribution: 0,
+                isKey: false,
+                isHce: false
             };
             systemData.push(newRecord);
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
 
         function updateRecord(index, field, value) {
-            // Need to handle sparse array if index refers to an original index after deletion
             if (systemData[index]) {
                  systemData[index][field] = value;
             }
-            // Re-render to ensure any filtering/sorting is correct after edit
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
 
         function deleteRow(index) {
             systemData.splice(index, 1);
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
 
         // --- CSV HANDLING & MAPPING ---
@@ -661,7 +644,7 @@
         function showDataImportControls() {
             document.getElementById('data-import-controls').classList.remove('hidden');
             document.getElementById('column-mapping-container').classList.add('hidden');
-            document.getElementById('data-grid-view').classList.remove('hidden'); // Show grid view but it will be empty
+            document.getElementById('data-grid-view').classList.remove('hidden');
         }
         
         function showColumnMapping() {
@@ -675,7 +658,7 @@
              rawCsvData = [];
              csvHeaders = [];
              showDataImportControls();
-             document.getElementById('csvFileInput').value = ''; // Clear file input
+             document.getElementById('csvFileInput').value = ''; 
         }
         
         function showDataGridReview() {
@@ -692,10 +675,9 @@
                 const div = document.createElement('div');
                 div.className = 'input-group';
                 div.innerHTML = `
-                    <label for="map-${field.id}" class="text-sm font-medium">${field.label}${field.required ? ' <span class="text-red-500">*</span>' : ''}</label>
+                    <label for="map-${field.id}" class="text-sm font-medium">${field.label} <span class="text-red-500">*</span></label>
                     <select id="map-${field.id}" class="p-2 border rounded-md map-select">
                         <option value="">-- SELECT COLUMN --</option>
-                        <option value="SKIP">SKIP (Manual Entry Required)</option>
                         ${csvHeaders.map(header => 
                             `<option value="${header}" ${header.toLowerCase().includes(field.id) || header.toLowerCase().includes(field.label.split(' ')[0].toLowerCase()) ? 'selected' : ''}>${header}</option>`
                         ).join('')}
@@ -716,15 +698,9 @@
 
             Papa.parse(file, {
                 header: true,
-                dynamicTyping: false, // Keep as string for mapping
+                dynamicTyping: false,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    if (results.errors.length > 0) {
-                        showError('CSV parsing error. Please check the file format.');
-                        console.error('CSV Errors:', results.errors);
-                        return;
-                    }
-                    
                     if (results.data.length === 0) {
                          showError('The uploaded CSV file contains no valid data rows.');
                          return;
@@ -732,7 +708,7 @@
 
                     rawCsvData = results.data;
                     csvHeaders = results.meta.fields;
-                    showError(''); // Clear previous error
+                    showError('');
                     showColumnMapping();
                 },
                 error: function(error) {
@@ -752,10 +728,7 @@
                 const selectElement = document.getElementById(`map-${field.id}`);
                 mapping[field.id] = selectElement.value;
                 
-                if (field.required && !mapping[field.id] || mapping[field.id] === 'SKIP') {
-                    // For required fields, if not mapped, it's an error. 
-                    // We'll treat 'SKIP' as an error for this strict data requirement.
-                    // If the user wants to add manually, they should use 'Add HCE Manually' later.
+                if (!mapping[field.id]) {
                     isMappingValid = false;
                     missingFields.push(field.label);
                     selectElement.classList.add('border-red-500');
@@ -771,195 +744,128 @@
             
             // 2. Process Raw Data into SystemData
             const newData = rawCsvData.map((d, index) => {
+                const isKeyVal = String(d[mapping.isKey]).toLowerCase();
+                const isHceVal = String(d[mapping.isHce]).toLowerCase();
+                
                 const newRecord = {
-                    name: String(d[mapping.name] || `HCE ${index + 1}`),
+                    id: crypto.randomUUID(),
+                    name: String(d[mapping.name] || `Employee ${index + 1}`),
                     compensation: parseFloat(d[mapping.compensation] || 0),
-                    deferral: parseFloat(d[mapping.deferral] || 0),
-                    match: parseFloat(d[mapping.match] || 0)
+                    contribution: parseFloat(d[mapping.contribution] || 0),
+                    isKey: isKeyVal === 'yes' || isKeyVal === 'true' || isKeyVal === '1',
+                    isHce: isHceVal === 'yes' || isHceVal === 'true' || isHceVal === '1'
                 };
                 
-                // Filter out records where essential data (like compensation) is missing or zero after parsing
-                if (newRecord.compensation === 0 || isNaN(newRecord.compensation) || newRecord.name === 'HCE NaN') {
+                if (newRecord.compensation === 0 || isNaN(newRecord.compensation)) {
                     return null; // Invalid record
                 }
                 return newRecord;
             }).filter(d => d !== null);
 
             if (newData.length === 0) {
-                 showError('After mapping, no valid HCE data records were found (Compensation must be > 0).');
+                 showError('After mapping, no valid employee data records were found (Compensation must be > 0).');
                  return;
             }
 
             systemData = newData;
             rawCsvData = [];
             csvHeaders = [];
-            showError(`Successfully imported and mapped ${systemData.length} HCE records.`);
+            showError(`Successfully imported and mapped ${systemData.length} employee records.`);
             
-            // 3. Render Data Grid and transition view
-            currentFilter = ''; // Reset filter after import
+            currentFilter = ''; 
             document.getElementById('dataFilter').value = '';
-            renderDataGrid();
+            calculateAndRenderDataGrid();
         }
         
-        // --- ADP/ACP TEST LOGIC ---
+        // --- TOP-HEAVY REPORT LOGIC ---
 
-        function calculateTests() {
-            // ... (rest of the test logic remains the same, assuming renderDataGrid filters/sorts but systemData is the source of truth)
-            
+        function generateReport() {
             showError('');
             if (systemData.length === 0) {
-                showError('Please import or enter HCE data before running the test.');
-                return;
-            }
-            
-            // ... (rest of the test logic from previous version)
-            const nhceAdp = parseFloat(document.getElementById('nhceAdp').value) / 100;
-            const nhceAcp = parseFloat(document.getElementById('nhceAcp').value) / 100;
-            const isSafeHarbor = document.getElementById('isSafeHarbor').checked;
-
-            if (isSafeHarbor) {
-                document.getElementById('adpTestSummaryBox').className = 'result-box result-pass';
-                document.getElementById('adpTestSummary').textContent = 'Passed (Safe Harbor)';
-                document.getElementById('acpTestSummaryBox').className = 'result-box result-pass';
-                document.getElementById('acpTestSummary').textContent = 'Passed (Safe Harbor)';
-                document.getElementById('adpResultBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Test waived due to Safe Harbor status.</td></tr>';
-                document.getElementById('acpResultBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Test waived due to Safe Harbor status.</td></tr>';
-                document.getElementById('correctionBody').innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500">No correction needed.</td></tr>';
+                showError('Please import or enter employee data before generating the report.');
                 return;
             }
 
-            // --- ADP TEST ---
-            const adpResult = runTest('deferral', nhceAdp);
-            updateTestResults('adp', adpResult, nhceAdp);
+            const isTopHeavy = document.getElementById('isTopHeavy').value === 'Yes';
+            const minRatePct = parseFloat(document.getElementById('minRatePct').value);
+            const keyEmployeeStatus = document.getElementById('keyEmployeeStatus').value;
 
-            // --- ACP TEST ---
-            const acpResult = runTest('match', nhceAcp);
-            updateTestResults('acp', acpResult, nhceAcp);
+            // 1. Update UI Summary based on Step 1 inputs
+            const overallSummaryBox = document.getElementById('overallReportSummaryBox');
+            const topHeavyStatusDisplay = document.getElementById('topHeavyStatusDisplay');
+            const minRateDisplay = document.getElementById('minRateDisplay');
+
+            topHeavyStatusDisplay.textContent = isTopHeavy ? 'Yes, Top-Heavy Minimums Required' : 'No, Top-Heavy Minimums NOT Required';
+            minRateDisplay.textContent = `Required Minimum Contribution Rate: ${minRatePct.toFixed(2)}% of Compensation`;
+            overallSummaryBox.className = isTopHeavy ? 'result-box result-info' : 'result-box result-pass';
             
-            // --- COMBINED CORRECTION SUMMARY ---
-            const combinedCorrection = adpResult.hceResults.map((adp, index) => {
-                const acp = acpResult.hceResults[index];
-                return {
-                    name: adp.name,
-                    totalRefund: adp.refund + acp.refund
-                };
-            }).sort((a, b) => b.totalRefund - a.totalRefund);
+            // 2. Filter employees for analysis: Non-Key Employees (that are not HCEs)
+            let employeesForAnalysis = calculateRates(systemData).filter(e => {
+                 const isNonKey = keyEmployeeStatus === 'AllNonKey' ? true : !e.isKey;
+                 
+                 // Minimums are generally only required for Non-Key NHCEs.
+                 return isNonKey && !e.isHce; 
+            });
 
-            const correctionBody = document.getElementById('correctionBody');
-            correctionBody.innerHTML = combinedCorrection.map(c => `
-                <tr>
-                    <td>${c.name}</td>
-                    <td class="font-bold">${formatCurrency(c.totalRefund)}</td>
-                </tr>
-            `).join('');
-
-            // If both passed, show combined message
-            if (adpResult.passed && acpResult.passed) {
-                 correctionBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500">Both ADP and ACP tests passed. No refunds required.</td></tr>';
+            if (!isTopHeavy) {
+                document.getElementById('reportResultBody').innerHTML = `
+                    <tr><td colspan="6" class="text-center py-4 text-green-600 font-semibold">
+                        Plan is NOT Top-Heavy. No minimum contributions are required under IRC 416.
+                    </td></tr>
+                `;
+                return;
             }
-        }
-        
-        /**
-         * Runs the ADP or ACP test logic.
-         * @param {string} contributionField 'deferral' for ADP, 'match' for ACP
-         * @param {number} nhceAvg - NHCE average (as a decimal, e.g., 0.04)
-         */
-        function runTest(contributionField, nhceAvg) {
-            // Calculate HCE percentage for each HCE
-            const hceResults = systemData.map(hce => {
-                const hcePct = (hce[contributionField] / hce.compensation) * 100;
-                return {
-                    ...hce,
-                    pct: hcePct, // as a percentage (e.g., 8.5)
-                    refund: 0 // placeholder for refund
-                };
-            }).sort((a, b) => b.pct - a.pct); // Sort HCEs by percentage, descending (for correction)
-
-            // Determine Max Allowed HCE Avg (ADP/ACP Limits)
-            let maxAllowedHceAvg; // as a decimal
-            if (nhceAvg < 0.02) {
-                maxAllowedHceAvg = nhceAvg + 0.02; // NHCE avg + 2%
-            } else if (nhceAvg >= 0.02 && nhceAvg <= 0.08) {
-                maxAllowedHceAvg = nhceAvg * 2; // NHCE avg * 2
-            } else { // nhceAvg > 0.08
-                maxAllowedHceAvg = nhceAvg + 0.015; // NHCE avg + 1.5%
+            
+            if (employeesForAnalysis.length === 0) {
+                 document.getElementById('reportResultBody').innerHTML = `
+                    <tr><td colspan="6" class="text-center py-4 text-gray-500">
+                        No Non-Key NHCE employees found to require a minimum contribution analysis.
+                    </td></tr>
+                `;
+                return;
             }
 
-            const hceAvg = hceResults.reduce((sum, hce) => sum + hce.pct, 0) / 100 / hceResults.length; // current HCE average (as decimal)
-            const passed = hceAvg <= maxAllowedHceAvg;
+
+            // 3. Generate Report Rows
+            let reportHtml = '';
+            let totalShortfall = 0;
             
-            let requiredRefunds = 0;
-            
-            if (!passed) {
-                let targetAvgPct = maxAllowedHceAvg * 100;
-                let refundAmount = 0;
+            employeesForAnalysis.forEach(e => {
+                const requiredMinContribution = (e.compensation * minRatePct) / 100;
+                let shortfall = 0;
                 
-                // Simple Top-Down Correction: Refund contributions starting with the highest percentage until the test passes.
-                // We'll calculate the refund based on lowering the highest % until the next HCE's % is met, iteratively.
-                for (let i = 0; i < hceResults.length; i++) {
-                    const hce = hceResults[i];
-                    // The highest percentage allowed for this HCE at the current step of correction
-                    const highestAllowedPct = (i === 0) ? targetAvgPct : hceResults[i - 1].correctedPct;
-
-                    if (hce.pct > highestAllowedPct) {
-                        // Max dollar amount needed to reduce their percentage down to the highest allowed percentage
-                        const reductionPct = hce.pct - highestAllowedPct;
-                        const dollarReduction = hce.compensation * (reductionPct / 100);
-                        
-                        // Capped by their actual contribution
-                        const refund = Math.min(dollarReduction, hce[contributionField]);
-                        hce.refund = refund;
-                        hce.correctedPct = hce.pct - (refund / hce.compensation * 100);
-                        refundAmount += refund;
-                    } else {
-                        hce.correctedPct = hce.pct; // Already below the threshold
-                    }
+                if (e.contribution < requiredMinContribution) {
+                    shortfall = requiredMinContribution - e.contribution;
+                    totalShortfall += shortfall;
                 }
-            }
-
-
-            return {
-                passed: passed,
-                maxAllowedHceAvg: maxAllowedHceAvg,
-                hceAvg: hceAvg,
-                hceResults: hceResults // contains refund data now
-            };
-        }
-
-        function updateTestResults(testType, result, nhceAvg) {
-            const bodyId = testType === 'adp' ? 'adpResultBody' : 'acpResultBody';
-            const summaryId = testType === 'adp' ? 'adpTestSummary' : 'acpTestSummary';
-            const summaryBoxId = testType === 'adp' ? 'adpTestSummaryBox' : 'acpTestSummaryBox';
-            const contributionType = testType === 'adp' ? 'Deferral' : 'Contribution';
-
-            const summaryElement = document.getElementById(summaryId);
-            const summaryBoxElement = document.getElementById(summaryBoxId);
-
-            let resultHtml = '';
-            
-            if (result.passed) {
-                summaryElement.textContent = `Passed! HCE Avg: ${(result.hceAvg * 100).toFixed(2)}% (Max Allowed: ${(result.maxAllowedHceAvg * 100).toFixed(2)}%)`;
-                summaryBoxElement.className = 'result-box result-pass';
-                resultHtml = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Test Passed. No ${contributionType} refunds required.</td></tr>`;
-            } else {
-                summaryElement.textContent = `Failed! HCE Avg: ${(result.hceAvg * 100).toFixed(2)}% (Max Allowed: ${(result.maxAllowedHceAvg * 100).toFixed(2)}%)`;
-                summaryBoxElement.className = 'result-box result-fail';
-
-                // Display detailed results with refunds
-                resultHtml = result.hceResults.map(hce => `
-                    <tr class="${hce.refund > 0 ? 'bg-red-50' : ''}">
-                        <td>${hce.name}</td>
-                        <td>${hce.pct.toFixed(2)}%</td>
-                        <td class="font-bold text-red-700">${formatCurrency(hce.refund)}</td>
-                        <td>${(hce.pct - (hce.refund / hce.compensation * 100)).toFixed(2)}%</td>
+                
+                const statusClass = shortfall > 0 ? 'bg-red-50 text-red-700 font-semibold' : 'text-green-700';
+                
+                reportHtml += `
+                    <tr class="${shortfall > 0 ? 'bg-red-50' : ''}">
+                        <td>${e.name}</td>
+                        <td>${e.isHce ? 'HCE' : 'NHCE'}</td>
+                        <td>${formatCurrency(e.compensation)}</td>
+                        <td>${formatPercent(e.rate)}</td>
+                        <td>${formatCurrency(requiredMinContribution)}</td>
+                        <td class="${statusClass}">${formatCurrency(shortfall)}</td>
                     </tr>
-                `).join('');
-            }
+                `;
+            });
 
-            document.getElementById(bodyId).innerHTML = resultHtml;
+            document.getElementById('reportResultBody').innerHTML = reportHtml;
+
+            // 4. Add Summary Row
+            const footerRow = document.getElementById('reportResultBody').insertRow();
+            footerRow.className = 'bg-gray-100 font-bold';
+            footerRow.innerHTML = `
+                <td colspan="5" class="text-right">Total Required Top-Heavy Shortfall for Non-Key NHCEs:</td>
+                <td class="${totalShortfall > 0 ? 'text-red-700' : 'text-green-700'}">${formatCurrency(totalShortfall)}</td>
+            `;
+
         }
 
-        // --- DATA EXPORT ---
+        // --- DATA EXPORT (PDF and CSV) ---
         
         function showProgress(message, isVisible) {
             const overlay = document.getElementById('pdf-loading-overlay');
@@ -975,9 +881,10 @@
             showProgress('Generating PDF Report...', true);
 
             const title = document.title;
-            const elementSelectors = ['#current-limits-display', '#step-1-inputs', '#step-2-data-grid', '#step-3-results'];
+            // Include step 1 and the results table, exclude data grid
+            const elementSelectors = ['#current-limits-display', '#step-1-inputs', '#step-3-results']; 
             
-            await new Promise(resolve => setTimeout(resolve, 50)); // Allow DOM to update
+            await new Promise(resolve => setTimeout(resolve, 50)); 
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
@@ -1021,9 +928,15 @@
                 return;
             }
 
-            const headerRow = REQUIRED_FIELDS.map(f => f.label);
-            const dataRows = systemData.map(record => 
-                REQUIRED_FIELDS.map(f => record[f.id])
+            const processedData = calculateRates(systemData);
+
+            const headerRow = REQUIRED_FIELDS.map(f => f.label).concat(['Calculated Allocation Rate (%)']);
+            const dataRows = processedData.map(record => 
+                REQUIRED_FIELDS.map(f => {
+                    if (f.id === 'isKey') return record[f.id] ? 'Yes' : 'No';
+                    if (f.id === 'isHce') return record[f.id] ? 'Yes' : 'No';
+                    return record[f.id];
+                }).concat([record.rate.toFixed(2)])
             );
             
             const csv = Papa.unparse([headerRow, ...dataRows]);
@@ -1033,7 +946,7 @@
             
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", "adp_acp_grid_export.csv");
+            link.setAttribute("download", "top_heavy_employee_data_export.csv");
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -1043,71 +956,53 @@
         // --- CORE RESET FUNCTION (START OVER) ---
         
         function startOver() {
-            // 1. Reset Global Data
             systemData = [];
             rawCsvData = [];
             csvHeaders = [];
-            hceCount = 0;
             currentFilter = '';
             currentSort = { column: 'compensation', direction: 'desc' };
-            CURRENT_PLAN_RULES = null;
 
-            // 2. Reset Step to 1 and UI Inputs
             currentStep = 1;
-            document.getElementById('nhceAdp').value = '4.0';
-            document.getElementById('nhceAcp').value = '3.0';
-            document.getElementById('isSafeHarbor').checked = false;
+            document.getElementById('isTopHeavy').value = 'Yes';
+            document.getElementById('keyEmployeeStatus').value = 'Determined';
+            document.getElementById('minRatePct').value = '3.0';
             document.getElementById('csvFileInput').value = '';
             document.getElementById('dataFilter').value = '';
             
-            // Clear the data grid inputs and state
-            const dataGridBody = document.getElementById('dataGridBody');
-            if (dataGridBody) dataGridBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No HCE data loaded. Please import a CSV or click \'Add HCE\'.</td></tr>';
+            document.getElementById('dataGridBody').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click \'Add Employee\'.</td></tr>';
             
-            // Clear correction/result tables
-            document.getElementById('adpResultBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>';
-            document.getElementById('acpResultBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>';
-            document.getElementById('correctionBody').innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-500">Combined correction will appear here.</td></tr>';
+            document.getElementById('reportResultBody').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Generate report after importing data.</td></tr>';
 
-            // Clear summary results and messages
-            document.getElementById('adpTestSummary').textContent = 'N/A';
-            document.getElementById('acpTestSummary').textContent = 'N/A';
-            document.getElementById('adpTestSummaryBox').className = 'result-box result-info';
-            document.getElementById('acpTestSummaryBox').className = 'result-box result-info';
+            document.getElementById('topHeavyStatusDisplay').textContent = 'No';
+            document.getElementById('overallReportSummaryBox').className = 'result-box result-info';
+            document.getElementById('minRateDisplay').textContent = 'Required Minimum Contribution Rate: 0.0%';
 
             showError('');
             
-            // Reset all step visibility
             updateStepIndicators();
-            showDataImportControls(); // Ensure Step 2 shows the import view
-
-            // Re-fetch configuration (or display fallbacks)
-            requestConfigReload(); 
+            showDataImportControls(); 
+            requestConfigReload(); // Mock function call
         }
         
         // --- INITIALIZATION AND CONFIG ---
         
-        // Mock function for config reload 
+        // Mock function for config reload (No external limits needed here, but kept for consistency)
         function requestConfigReload() {
-            console.log("Requesting plan configuration reload...");
-            setTimeout(() => {
-                const mockPayload = {
-                    LIMITS: { hce_comp_test: 155000 },
-                    RULES: { safe_harbor: false }
-                };
-                CURRENT_PLAN_RULES = mockPayload;
-                displayFallbackLimits();
-            }, 50);
+            // Placeholder for future dynamic config loading
+            document.getElementById('current-limits-display').innerHTML = `
+                <p><strong>Plan Check:</strong> Top-Heavy Compliance</p>
+                <ul>
+                    <li>Required Inputs: Top-Heavy Status, Key Status, HCE Status, Compensation, Contribution</li>
+                </ul>
+            `;
         }
 
         window.addEventListener('DOMContentLoaded', function() {
-            // Initial setup
             requestConfigReload(); 
-            updateStepIndicators(); // Initialize step display
-            document.getElementById('run-test-button').addEventListener('click', calculateTests);
-            document.getElementById('start-over-button').addEventListener('click', startOver);
-            // Initial render of an empty grid view
-            renderDataGrid(); 
+            updateStepIndicators(); 
+            document.getElementById('run-report-button').addEventListener('click', () => showStep(3));
+            calculateAndRenderDataGrid(); 
+            updateMinRateOptions(); // Set initial default
         });
     </script>
 </body>

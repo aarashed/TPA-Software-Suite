@@ -5,7 +5,7 @@ let CURRENT_PLAN_RULES = null;
 // Fallback limits and rules for ADP/ACP
 const FALLBACK_LIMITS_KEYS = {
     // This must contain the specific limit used in this tool
-    hce_comp_test: 155000, 
+    hce_comp_test: 155000, // 2024 HCE compensation limit
 };
 const FALLBACK_RULES_KEYS = {
     safe_harbor: false // Default to NOT Safe Harbor
@@ -13,10 +13,15 @@ const FALLBACK_RULES_KEYS = {
 
 // Helper function to format currency
 function formatCurrency(value) {
+   // Use Math.abs to ensure positive sign for formatting, but handle negative logic elsewhere
    return '$' + Math.abs(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// Helper function to safely retrieve a limit (CRITICAL FIX: NaN Resilience)
+/**
+ * Helper function to safely retrieve a limit.
+ * @param {string} key - The key for the limit.
+ * @returns {number} The limit value.
+ */
 function getLimit(key) {
     let value = FALLBACK_LIMITS_KEYS[key]; // Start with fallback value
 
@@ -34,415 +39,616 @@ function getLimit(key) {
     return FALLBACK_LIMITS_KEYS[key]; 
 }
 
-// Helper function to safely retrieve a plan rule
+/**
+ * Helper function to safely retrieve a plan rule.
+ * @param {string} key - The key for the rule.
+ * @returns {*} The rule value (e.g., boolean).
+ */
 function getRule(key) {
-    let value = FALLBACK_RULES_KEYS[key]; // Start with fallback value
+    let value = FALLBACK_RULES_KEYS[key];
 
-    if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.CLIENT_XYZ && CURRENT_PLAN_RULES.CLIENT_XYZ[key] !== undefined) {
-        value = CURRENT_PLAN_RULES.CLIENT_XYZ[key];
-    }
-    
-    if (key === 'safe_harbor' && typeof value === 'boolean') {
-        return value;
+    if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.RULES && CURRENT_PLAN_RULES.RULES[key] !== undefined) {
+        value = CURRENT_PLAN_RULES.RULES[key];
     }
 
-    return FALLBACK_RULES_KEYS[key];
+    return value;
 }
-
-
-// --- DYNAMIC DATA LISTENER ---
-window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'INITIAL_PLAN_CONFIG') {
-        CURRENT_PLAN_RULES = event.data.rules;
-        console.log("Received Plan Rules for ADP/ACP Calc:", CURRENT_PLAN_RULES);
-        // Call initialize *after* data is received
-        initializeCalculator(CURRENT_PLAN_RULES); 
-    }
-});
 
 /**
- * Sends a message to the parent dashboard requesting the config data be resent.
+ * Displays an error message in the dedicated error div.
+ * @param {string} message 
  */
-window.requestConfigReload = function() {
-    const displayElement = document.getElementById('current-limits-display');
-    if (displayElement) {
-        displayElement.className = 'result-box result-info'; 
-        displayElement.innerHTML = `<p style="font-weight: 600;">Requesting updated Plan Configuration...</p>`;
-    }
-    
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'REQUEST_CONFIG' }, '*');
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.textContent = message;
+    if (message) {
+        errorDiv.classList.add('visible');
     } else {
-        console.warn("Script is running outside of an iframe. Cannot send REQUEST_CONFIG. Using local defaults.");
-        setTimeout(() => initializeCalculator(null), 50); 
+        errorDiv.classList.remove('visible');
     }
 }
 
-// Initialization function: Displays the dynamic status and limit
-function initializeCalculator(rules) {
-    // Safely retrieve limits and rules
-    const HCE_COMP_LIMIT = getLimit('hce_comp_test');
-    const IS_SAFE_HARBOR = getRule('safe_harbor');
+/**
+ * Displays the loaded limits in the dedicated information box.
+ */
+function displayCurrentLimits() {
+    const display = document.getElementById('current-limits-display');
+    const hceLimit = getLimit('hce_comp_test');
+    const isSafeHarbor = getRule('safe_harbor');
     
-    let messageHtml = '';
-    let statusClass = 'result-box result-success';
-    
-    // Check if configuration was loaded successfully
-    if (!rules || !rules.LIMITS || rules.LIMITS.hce_comp_test === undefined) {
-        statusClass = 'result-box result-warning';
-        messageHtml = `
-            <p style="color: var(--color-warning); font-weight: 600; margin-top: 5px;">
-                ⚠️ Warning: Plan Configuration failed to load fully. Using default limits/rules.
-            </p>
-        `;
-    }
+    // Determine the HCE compensation test text
+    const hceText = isNaN(hceLimit) 
+        ? 'N/A' 
+        : `\$${hceLimit.toLocaleString('en-US')}`;
 
-    const safeHarborStatusText = IS_SAFE_HARBOR ? 'Yes (Test Waived)' : 'No (Traditional Test)';
-    const safeHarborStatusColor = IS_SAFE_HARBOR ? 'var(--color-success)' : 'var(--color-warning)';
-
-    const displayElement = document.getElementById('current-limits-display');
-    
-    if (displayElement) {
-        displayElement.className = `${statusClass}`;
-        displayElement.innerHTML = `
-            <p style="font-weight: 600; margin-bottom: 5px;">Plan Configuration (Loaded):</p>
-            <div style="display: flex; justify-content: center; gap: 30px; font-size: 1.1em; flex-wrap: wrap;">
-                <p><strong>HCE Comp Test Limit:</strong> <span style="font-weight: 700;">${formatCurrency(HCE_COMP_LIMIT)}</span></p>
-                <p><strong>Safe Harbor Status:</strong> <span style="font-weight: 700; color: ${safeHarborStatusColor};">${safeHarborStatusText}</span></p>
-            </div>
-            ${messageHtml}
-        `;
-    }
-
-    // --- Only initialize with sample HCEs if the table is empty ---
-    const tableBody = document.getElementById('hceTableBody');
-    if (tableBody && tableBody.rows.length === 0) {
-        window.addHCE(200000, 15000, 8000); 
-        window.addHCE(150000, 10000, 5000);
-    }
+    display.innerHTML = `
+        <p><strong>Plan Configuration Summary:</strong></p>
+        <ul>
+            <li><strong>Highly Compensated Employee (HCE) Threshold:</strong> ${hceText} (Based on HCE Compensation Test limit)</li>
+            <li><strong>Safe Harbor Status:</strong> <span class="${isSafeHarbor ? 'text-success' : 'text-danger'}">${isSafeHarbor ? 'YES' : 'NO'}</span></li>
+        </ul>
+        <p class="hint-text">Note: Safe Harbor plans are typically exempt from the ADP/ACP test.</p>
+    `;
 }
 
-
-// Function to add a new HCE row to the data table
-window.addHCE = function(initialComp = 180000, initialDef = 12000, initialMatch = 7200) {
-   hceCount++;
-   const tableBody = document.getElementById('hceTableBody');
-   const newRow = tableBody.insertRow();
-   newRow.id = `hce-row-${hceCount}`;
-
-   newRow.innerHTML = `
-       <td>HCE ${hceCount}</td>
-       <td><input type="number" id="comp-${hceCount}" value="${initialComp}" min="0" step="0.01" class="hce-input-comp"></td>
-       <td><input type="number" id="def-${hceCount}" value="${initialDef}" min="0" step="0.01" class="hce-input-deferral"></td>
-       <td><input type="number" id="match-${hceCount}" value="${initialMatch}" min="0" step="0.01" class="hce-input-match"></td>
-       <td><button onclick="removeHCE(this)" data-id="${hceCount}">🗑️</button></td>
-   `;
+// Function to run when configuration data is explicitly missing (e.g., initial load timeout)
+function displayFallbackLimits() {
+    // Only display fallbacks if the main rules are not set
+    if (CURRENT_PLAN_RULES) return;
+    const display = document.getElementById('current-limits-display');
+    display.innerHTML = `
+        <p style="color: #dc3545; font-weight: bold;">WARNING: Failed to load plan configuration. Using default IRS limits.</p>
+        <ul>
+            <li><strong>Highly Compensated Employee (HCE) Threshold:</strong> \$${FALLBACK_LIMITS_KEYS['hce_comp_test'].toLocaleString('en-US')}</li>
+            <li><strong>Safe Harbor Status:</strong> NO (Plan is assumed NOT to be Safe Harbor)</li>
+        </ul>
+        <p class="hint-text">Use the 'Reload Plan Config' button if data should be available.</p>
+    `;
 }
 
-// Function to remove an HCE row
-window.removeHCE = function(button) {
-   const rowId = button.getAttribute('data-id');
-   const row = document.getElementById(`hce-row-${rowId}`);
-   if (row) {
-       row.remove();
-   }
-}
+// Universal handler for messages from the parent window (used to receive dynamic configuration)
+window.addEventListener('message', handleConfigMessage, false);
 
-// Function to clear all HCE rows
-window.clearHCEs = function() {
-    const tableBody = document.getElementById('hceTableBody');
-    tableBody.innerHTML = '';
-    hceCount = 0; // Reset count
-}
-
-// Helper to determine the maximum allowed ADP/ACP based on NHCE rate
-function getAllowedMax(nhceRate) {
-    // NHCE Rate is passed as a percentage (e.g., 4.0 for 4%)
-    if (nhceRate <= 2.0) return nhceRate * 2;
-    if (nhceRate <= 8.0) return nhceRate + 2.0;
-    return nhceRate * 1.25;
-}
-
-
-// =========================================================================
-// MAIN CALCULATION FUNCTION
-// =========================================================================
-
-function calculateADPAC() {
-    const IS_SAFE_HARBOR = getRule('safe_harbor');
-    
-    // Clear previous results
-    document.getElementById('adpResults').style.display = 'none';
-    document.getElementById('acpResults').style.display = 'none';
-    document.getElementById('adpCorrectionTable').style.display = 'none';
-    document.getElementById('acpCorrectionTable').style.display = 'none';
-    document.getElementById('error-message').style.display = 'none';
-    document.getElementById('adpCorrectionBody').innerHTML = '';
-    document.getElementById('acpCorrectionBody').innerHTML = '';
-    
-    // --- Safe Harbor Check (Early Exit) ---
-    if (IS_SAFE_HARBOR) {
-        document.getElementById('adpResults').style.display = 'block';
-        document.getElementById('adpResults').innerHTML = `
-            <div class="success-message">
-                <h2>ADP/ACP Test Waived</h2>
-                <p style="font-size: 1.1em;">This plan is configured as a **Safe Harbor 401(k) Plan**.</p>
-                <p>The ADP and ACP Nondiscrimination Tests are automatically deemed to be satisfied...</p>
-            </div>
-        `;
-        document.getElementById('adpResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return; 
-    }
-    
-    // --- Traditional Testing ---
-    const nhceAdpRate = parseFloat(document.getElementById('nhceAdp').value) / 100; // Convert to decimal
-    const nhceAcpRate = parseFloat(document.getElementById('nhceAcp').value) / 100; // Convert to decimal
-
-    if (isNaN(nhceAdpRate) || isNaN(nhceAcpRate)) {
-        document.getElementById('error-message').textContent = 'Please enter valid NHCE rates.';
-        document.getElementById('error-message').style.display = 'block';
+function handleConfigMessage(event) {
+    // Standard checks to ensure message is from a trusted source and is the correct format
+    if (typeof event.data !== 'object' || event.data === null) {
         return;
     }
 
-    const hceData = getHCEInputData();
-    
-    if (hceData.length === 0) {
-        document.getElementById('error-message').textContent = 'Please add at least one HCE with valid compensation to run the test.';
-        document.getElementById('error-message').style.display = 'block';
-        return;
+    // Check if the message contains the configuration data
+    if (event.data.type === 'PLAN_CONFIG_RESPONSE' && event.data.config) {
+        CURRENT_PLAN_RULES = event.data.config;
+        displayCurrentLimits();
     }
-
-    const adpResult = runTest(hceData, nhceAdpRate, 'deferral', 'ADP');
-    const acpResult = runTest(hceData, nhceAcpRate, 'match', 'ACP');
-    
-    displayTestResults(adpResult, 'adp', nhceAdpRate * 100); 
-    displayTestResults(acpResult, 'acp', nhceAcpRate * 100); 
-    
-    document.getElementById('adpResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+/**
+ * Sends a message to the parent window requesting a reload of the plan configuration.
+ */
+function requestConfigReload() {
+    // Inform the user that a request is being made
+    const display = document.getElementById('current-limits-display');
+    display.innerHTML = `<p>Requesting updated plan configuration...</p>`;
+    
+    try {
+        window.parent.postMessage({ type: 'PLAN_CONFIG_REQUEST' }, '*');
+    } catch (e) {
+        showError('Could not send config request to parent window. Falling back to default limits.');
+        displayFallbackLimits();
+    }
+}
 
-function getHCEInputData() {
+// --- HCE MANAGEMENT ---
+
+/**
+ * Generates the HTML for a single HCE input row.
+ * @param {number} index - 1-based index of the HCE.
+ * @returns {string} The HTML string.
+ */
+function generateHceRow(index) {
+    const hceLimit = getLimit('hce_comp_test');
+    // Determine the HCE status based on the loaded limit
+    const statusText = !isNaN(hceLimit) 
+        ? ` (Comp. $\le$ ${formatCurrency(hceLimit)})` 
+        : '';
+
+    return `
+        <tr data-index="${index}">
+            <td class="text-center">${index}</td>
+            <td>
+                <input type="number" class="hce-compensation" value="" placeholder="Compensation" min="0" step="1000">
+            </td>
+            <td>
+                <input type="number" class="hce-deferrals" value="" placeholder="Deferrals" min="0" step="10">
+            </td>
+            <td>
+                <input type="number" class="hce-matching" value="" placeholder="Match/Nonelec. Contrib." min="0" step="10">
+            </td>
+            <td class="hce-status text-center text-sm" style="min-width: 150px;">
+                HCE Status ${statusText}
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn-remove btn-secondary-small" onclick="removeHceRow(this)">
+                    Remove
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+/**
+ * Adds a new HCE input row to the table.
+ */
+function addHceRow() {
+    hceCount++;
+    if (hceCount > 100) {
+        showError("The calculator supports a maximum of 100 HCEs for performance reasons.");
+        hceCount--;
+        return;
+    }
+    const tableBody = document.getElementById('hceInputBody');
+    tableBody.insertAdjacentHTML('beforeend', generateHceRow(hceCount));
+    showError(''); // Clear any previous errors
+
+    // Update row numbers after adding
+    updateHceRowNumbers();
+}
+
+/**
+ * Removes an HCE input row from the table.
+ * @param {HTMLElement} button - The button element clicked.
+ */
+function removeHceRow(button) {
+    const row = button.closest('tr');
+    if (row) {
+        row.remove();
+        hceCount--;
+        updateHceRowNumbers();
+    }
+}
+
+/**
+ * Updates the 1-based index numbers in the first column of the HCE table.
+ */
+function updateHceRowNumbers() {
+    const rows = document.querySelectorAll('#hceInputBody tr');
+    hceCount = rows.length;
+    rows.forEach((row, index) => {
+        const cell = row.cells[0]; // First cell is the index number
+        if (cell) {
+            cell.textContent = index + 1;
+        }
+    });
+}
+
+/**
+ * Parses the HCE input table and validates the data.
+ * @returns {Array<object>|null} An array of HCE objects, or null if validation fails.
+ */
+function collectHceData() {
+    const rows = document.querySelectorAll('#hceInputBody tr');
+    const hceLimit = getLimit('hce_comp_test');
     const hceData = [];
-    const tableBody = document.getElementById('hceTableBody');
-    const rows = tableBody.rows;
-    
-    const rowIDs = Array.from(rows).map(row => row.id.split('-').pop());
+    let isValid = true;
 
-    rowIDs.forEach(id => {
-        const compElement = document.getElementById(`comp-${id}`);
-        const defElement = document.getElementById(`def-${id}`);
-        const matchElement = document.getElementById(`match-${id}`);
-        
-        if (!compElement || !defElement || !matchElement) return;
+    rows.forEach((row, index) => {
+        const compInput = row.querySelector('.hce-compensation');
+        const deferralInput = row.querySelector('.hce-deferrals');
+        const matchInput = row.querySelector('.hce-matching');
+        const statusCell = row.querySelector('.hce-status');
 
-        const comp = parseFloat(compElement.value);
-        const def = parseFloat(defElement.value);
-        const match = parseFloat(matchElement.value);
+        const compensation = parseFloat(compInput.value) || 0;
+        const deferrals = parseFloat(deferralInput.value) || 0;
+        const matching = parseFloat(matchInput.value) || 0;
         
-        if (isNaN(comp) || comp <= 0 || isNaN(def) || isNaN(match)) return; 
+        statusCell.classList.remove('text-success', 'text-danger');
+        
+        // 1. Basic validation
+        if (compensation <= 0 || deferrals < 0 || matching < 0) {
+            isValid = false;
+            statusCell.textContent = 'Invalid Data';
+            statusCell.classList.add('text-danger');
+            showError(`Row ${index + 1}: Compensation must be positive. Deferrals/Match must be non-negative.`);
+            return;
+        }
+
+        // 2. HCE Status check (using the plan's current limit)
+        const isHce = compensation > hceLimit;
+        
+        if (!isHce) {
+            statusCell.textContent = 'Not HCE (Comp. below threshold)';
+            statusCell.classList.add('text-danger');
+            isValid = false;
+            showError(`Row ${index + 1}: Compensation is below the HCE threshold of ${formatCurrency(hceLimit)}. Please ensure data is correct.`);
+            return;
+        }
+
+        statusCell.textContent = 'HCE';
+        statusCell.classList.add('text-success');
 
         hceData.push({
-            id: `HCE ${id}`,
-            comp: comp,
-            deferral: def,
-            match: match,
-            adpRate: (def / comp),
-            acpRate: (match / comp)
+            id: index + 1,
+            compensation: compensation,
+            deferrals: deferrals,
+            matching: matching,
+            adp: (deferrals / compensation) * 100,
+            acp: ((deferrals + matching) / compensation) * 100, // ACP calculation
+            isHce: isHce,
         });
     });
-    return hceData;
+
+    return isValid ? hceData.filter(d => d.isHce) : null;
 }
 
+// --- CORRECTION LOGIC ---
 
-function runTest(hceData, nhceRateDecimal, contributionKey, testName) {
-    const hceRates = hceData.map(hce => hce[`${contributionKey}Rate`]);
+/**
+ * Determines the required corrective reduction for HCEs to pass the test.
+ * This function handles both ADP and ACP correction logic.
+ * @param {Array<object>} hceData - Array of HCE objects with 'adp' or 'acp' properties.
+ * @param {number} targetAvg - The maximum allowed average percentage (ADP Limit or ACP Limit).
+ * @param {string} type - 'adp' or 'acp'.
+ * @returns {Array<object>} Array of HCE objects with a 'refundAmount' and 'correctedAdp/correctedAcp' property.
+ */
+function determineCorrection(hceData, targetAvg, type) {
+    const contributionType = type === 'adp' ? 'deferrals' : 'matching';
+    const rateType = type; // 'adp' or 'acp'
+    let currentHceData = JSON.parse(JSON.stringify(hceData));
     
-    if (hceRates.length === 0) {
-        return { testName: testName, nhceRate: nhceRateDecimal * 100, hceRate: NaN, allowedMax: getAllowedMax(nhceRateDecimal * 100), passed: false, correctionData: [], requiredRefundTotal: 0 }; 
+    // Sort HCEs by their current rate (ADP or ACP) in DESCENDING order
+    currentHceData.sort((a, b) => b[rateType] - a[rateType]);
+
+    let sumCorrectedRates = currentHceData.reduce((sum, hce) => sum + hce[rateType], 0);
+    let hceAverage = sumCorrectedRates / currentHceData.length;
+
+    // Check if correction is actually needed
+    if (hceAverage <= targetAvg) {
+        // No correction needed, initialize correction fields
+        return currentHceData.map(hce => ({
+            ...hce, 
+            refundAmount: 0, 
+            [`corrected${rateType.toUpperCase()}`]: hce[rateType]
+        }));
     }
-    
-    const avgHceRate = hceRates.reduce((sum, rate) => sum + rate, 0) / hceRates.length;
-    
-    const allowedMaxPercent = getAllowedMax(nhceRateDecimal * 100);
-    const allowedMaxDecimal = allowedMaxPercent / 100; 
-    
-    const passed = avgHceRate <= allowedMaxDecimal;
 
-    const correctionData = [];
-    let requiredRefundTotal = 0;
+    // Step 1: Reduce the rate of the highest-rated HCE until the overall average hits the target.
+    // The refund is calculated against the original contribution base.
     
-    let targetHceRate = allowedMaxDecimal; 
+    // The target sum of rates is the number of HCEs * targetAvg
+    const targetSumRates = currentHceData.length * targetAvg;
+    
+    // Total excess rate percentage is the difference between the current sum and the target sum
+    let totalExcessRate = sumCorrectedRates - targetSumRates;
 
-    if (!passed) {
-        
-        let sortedHCEs = hceData.map(hce => ({
-            ...hce,
-            rate: hce[`${contributionKey}Rate`],
-            contribution: hce[contributionKey]
-        })).sort((a, b) => b.rate - a.rate); 
+    let totalRefund = 0;
+    
+    // Loop through HCEs from highest rate down
+    for (const hce of currentHceData) {
+        if (totalExcessRate <= 0) break; // Stop if the average is now passing
 
-        let tempHCEs = JSON.parse(JSON.stringify(sortedHCEs)); 
-        
-        let shouldContinueLeveling = true;
-        
-        while (shouldContinueLeveling) {
-            
-            let wasReduced = false;
-            
-            tempHCEs = tempHCEs.map(hce => {
-                if (hce.rate > targetHceRate) {
-                    let maxContributionAllowed = hce.comp * targetHceRate;
-                    let refund = hce.contribution - maxContributionAllowed;
-                    
-                    if (refund < 0) refund = 0;
-                    
-                    if (refund > 0) {
-                        requiredRefundTotal += refund;
-                        hce.contribution -= refund;
-                        hce.rate = hce.contribution / hce.comp;
-                        wasReduced = true;
-                    }
-                }
-                return hce;
-            });
-            
-            tempHCEs.sort((a, b) => b.rate - a.rate);
-            let newAvg = tempHCEs.reduce((sum, hce) => sum + hce.rate, 0) / tempHCEs.length;
-            
-            if (newAvg <= allowedMaxDecimal) {
-                shouldContinueLeveling = false;
-            } else if (!wasReduced) {
-                 shouldContinueLeveling = false;
-            } else {
-                targetHceRate = tempHCEs[0].rate; 
-            }
+        // The maximum percentage reduction needed from this HCE to make the test pass
+        // or the amount needed to zero out their contribution rate.
+        let requiredReductionPercent = hce[rateType] - targetAvg;
+
+        // If the HCE's rate is already at or below the targetAvg, they don't contribute to the current *excess*.
+        if (requiredReductionPercent <= 0) {
+            hce.reductionPercent = 0;
+            hce.refundAmount = 0;
+            hce[`corrected${rateType.toUpperCase()}`] = hce[rateType];
+            continue;
         }
+
+        // The reduction this HCE must take is limited by two factors:
+        // 1. The total excess rate still needing to be eliminated (`totalExcessRate`).
+        // 2. The amount needed to bring this specific HCE down to the `targetAvg` (`requiredReductionPercent`).
+
+        // The actual reduction percentage applied to this HCE to fix the test is the smaller of:
+        // a) The HCE's current rate (to zero them out).
+        // b) The amount needed to bring the overall HCE average down to the target sum.
+        let actualRateReduction = Math.min(hce[rateType], totalExcessRate);
         
-        hceData.forEach(originalHCE => {
-            const finalHCE = tempHCEs.find(hce => hce.id === originalHCE.id);
-            const refundAmount = originalHCE[contributionKey] - finalHCE.contribution;
-            
-            correctionData.push({
-                id: originalHCE.id,
-                rate: originalHCE[`${contributionKey}Rate`] * 100,
-                refund: refundAmount,
-                newRate: finalHCE.rate * 100
-            });
-        });
+        // This HCE's rate will be reduced by `actualRateReduction`.
+        hce.reductionPercent = actualRateReduction;
         
+        // Calculate the refund amount based on the reduction percent and their compensation
+        hce.refundAmount = (actualRateReduction / 100) * hce.compensation;
+        
+        // Update the HCE's corrected rate
+        hce[`corrected${rateType.toUpperCase()}`] = hce[rateType] - actualRateReduction;
+        
+        // Update the total excess rate remaining to be distributed among the remaining HCEs
+        totalExcessRate -= actualRateReduction;
+        totalRefund += hce.refundAmount;
+    }
+    
+    // Second Pass: If any HCE's corrected rate is still above the Target Avg due to a prior HCE's large reduction
+    // that fixed the test, this HCE's rate must still be leveled down to the targetAvg.
+    // This is the "leveling" principle (reducing the highest rate HCEs until the average passes).
+    // The first pass calculation essentially implements the leveling logic by iterating from highest to lowest
+    // and reducing each highest HCE's rate until their remaining rate is the 'Target Avg' (the max permitted
+    // HCE average, not the target average after correction, which is lower).
+    
+    // Since we used `totalExcessRate` and distributed it from highest to lowest, the average is now passing.
+    // However, the rule states to reduce the highest until they reach the maximum *passing* rate.
+    // Let's refine the logic to adhere to the leveling principle:
+    
+    currentHceData = JSON.parse(JSON.stringify(hceData));
+    currentHceData.sort((a, b) => b[rateType] - a[rateType]);
+    
+    let isCorrectionNeeded = true;
+    while(isCorrectionNeeded) {
+        let sumRates = currentHceData.reduce((sum, hce) => sum + hce[rateType], 0);
+        hceAverage = sumRates / currentHceData.length;
+
+        if (hceAverage <= targetAvg) {
+            isCorrectionNeeded = false;
+            break;
+        }
+
+        // HCE with the current highest rate
+        const highestHce = currentHceData[0]; 
+        
+        // Find the amount this HCE's rate must be reduced to make the overall average pass.
+        // The difference between the current sum of rates and the target sum of rates
+        const requiredReductionSum = sumRates - targetAvg * currentHceData.length;
+        
+        // Calculate the reduction required *from this HCE* to meet the test (leveling principle)
+        // If we reduce this HCE's rate by X, the new average will be (sumRates - X) / N
+        // We want (sumRates - X) / N = targetAvg.
+        // sumRates - X = targetAvg * N
+        // X = sumRates - targetAvg * N
+        let reductionPercentFromHighest = requiredReductionSum;
+        
+        // If the reduction required to fix the average is less than the amount needed to bring this HCE's rate
+        // down to the target (i.e., highestHce[rateType] - targetAvg), we reduce by the required amount.
+        
+        let actualRateReduction = Math.min(
+            reductionPercentFromHighest, // Reduction needed to fix the average
+            highestHce[rateType]         // Cannot reduce more than their current rate
+        );
+
+        // Apply reduction and calculate refund
+        highestHce.reductionPercent = actualRateReduction;
+        highestHce.refundAmount = ((highestHce.refundAmount || 0) + (actualRateReduction / 100) * highestHce.compensation);
+        highestHce[rateType] -= actualRateReduction;
+        
+        // Sort again to ensure the highest contributor is always first for the next iteration
+        currentHceData.sort((a, b) => b[rateType] - a[rateType]);
     }
 
-
-    return {
-        testName: testName,
-        nhceRate: nhceRateDecimal * 100,
-        hceRate: avgHceRate * 100,
-        allowedMax: allowedMaxDecimal * 100,
-        passed: passed,
-        correctionData: correctionData,
-        requiredRefundTotal: requiredRefundTotal
-    };
+    // Final re-sort by ID for display purposes
+    return currentHceData.map(hce => ({
+        ...hce,
+        refundAmount: hce.refundAmount || 0,
+        [`corrected${rateType.toUpperCase()}`]: hce[rateType]
+    })).sort((a, b) => a.id - b.id);
 }
 
 
-function displayTestResults(result, testId, nhceRatePercent) {
-    const resultsDiv = document.getElementById(`${testId}Results`);
-    const correctionTable = document.getElementById(`${testId}CorrectionTable`);
-    const correctionBody = document.getElementById(`${testId}CorrectionBody`);
+// --- MAIN CALCULATION ---
+
+/**
+ * Calculates the maximum allowable HCE average percentage based on the NHCE average.
+ * This is the operational implementation of the IRC 401(k)(3) and 401(m)(3) rules.
+ * The rule is: The HCE ADP must satisfy Test 1 OR Test 2.
+ * Max HCE ADP is therefore the higher of the two implied limits.
+ * Limit A: 1.25 * NHCE ADP
+ * Limit B: min(NHCE ADP + 2, 2 * NHCE ADP)
+ * @param {number} nhceAvg - The NHCE average percentage (e.g., 4.0 for 4.0%).
+ * @returns {number} The maximum allowable HCE average percentage.
+ */
+function calculateMaxHceAvg(nhceAvg) {
+    if (nhceAvg < 0) return 0;
+
+    // Limit A: 1.25 times the NHCE average
+    const limitA = 1.25 * nhceAvg; 
+
+    // Limit B: NHCE average + 2 percentage points, but not more than 2 times the NHCE average
+    const limitB = Math.min(nhceAvg + 2, 2 * nhceAvg); 
+
+    // The maximum allowable HCE average is the GREATER of Limit A or Limit B
+    return Math.max(limitA, limitB);
+}
+
+/**
+ * Main function to run the ADP and ACP nondiscrimination tests.
+ */
+function calculateAdpAcp() {
+    showError(''); // Clear previous errors
+
+    // 1. Get NHCE Averages (as percentages)
+    const nhceAdpInput = document.getElementById('nhceAdp');
+    const nhceAcpInput = document.getElementById('nhceAcp');
     
-    resultsDiv.style.display = 'block';
-    correctionTable.style.display = 'none';
+    const nhceAdp = parseFloat(nhceAdpInput.value);
+    const nhceAcp = parseFloat(nhceAcpInput.value);
     
-    let passFailClass = result.passed ? 'result-success' : 'result-error';
-    let passFailText = result.passed ? 'PASSED' : 'FAILED';
-    let allowedMaxPercent = getAllowedMax(nhceRatePercent);
+    if (isNaN(nhceAdp) || nhceAdp < 0 || isNaN(nhceAcp) || nhceAcp < 0) {
+        return showError('NHCE averages must be non-negative numbers.');
+    }
     
-    resultsDiv.className = `card result-card ${passFailClass}`;
+    // 2. Get HCE Data
+    const hceData = collectHceData();
+    if (!hceData || hceData.length === 0) {
+        return showError('Please enter valid data for at least one Highly Compensated Employee (HCE) above the compensation threshold.');
+    }
     
-    const hceRateDisplay = isNaN(result.hceRate) ? 'N/A' : result.hceRate.toFixed(2);
+    // 3. Calculate HCE Averages
+    const totalHceAdp = hceData.reduce((sum, hce) => sum + hce.adp, 0);
+    const totalHceAcp = hceData.reduce((sum, hce) => sum + hce.acp, 0);
+    const hceCountActual = hceData.length;
     
-    resultsDiv.innerHTML = `
-        <h2>${result.testName} Test Results: <span style="font-weight: bold;">${passFailText}</span></h2>
+    const hceAdpAvg = totalHceAdp / hceCountActual;
+    const hceAcpAvg = totalHceAcp / hceCountActual;
+
+    // 4. Calculate Max Allowable HCE Averages
+    const maxHceAdp = calculateMaxHceAvg(nhceAdp);
+    const maxHceAcp = calculateMaxHceAvg(nhceAcp);
+    
+    // 5. Determine Test Results
+    const adpPass = hceAdpAvg <= maxHceAdp;
+    const acpPass = hceAcpAvg <= maxHceAcp;
+    
+    // 6. Determine Correction Amounts
+    const adpCorrectionData = adpPass 
+        ? hceData.map(hce => ({...hce, refundAmount: 0, correctedADP: hce.adp}))
+        : determineCorrection(hceData, maxHceAdp, 'adp');
         
-        <p><span class="metric-label">NHCE ${result.testName}:</span> <span class="metric-value">${result.nhceRate.toFixed(2)}%</span></p>
-        <p><span class="metric-label">HCE ${result.testName} (Pre-Correction):</span> <span class="metric-value">${hceRateDisplay}%</span></p>
+    const acpCorrectionData = acpPass
+        ? hceData.map(hce => ({...hce, refundAmount: 0, correctedACP: hce.acp}))
+        : determineCorrection(hceData, maxHceAcp, 'acp');
+
+    // Combine correction refunds (a participant may receive both an ADP and ACP refund)
+    const combinedCorrectionData = hceData.map((hce, index) => {
+        const adpRefund = adpCorrectionData[index].refundAmount || 0;
+        const acpRefund = acpCorrectionData[index].refundAmount || 0;
         
-        <div class="metric-row" style="border-top: 1px solid #ddd; margin: 10px 0;">
-            <span class="metric-label"><strong>Maximum Allowed HCE ${result.testName}:</strong></span>
-            <span class="metric-value"><strong>${result.allowedMax.toFixed(2)}%</strong></span>
-        </div>
-        
-        <p class="hint-text" style="text-align: center;">
-            *The HCE ${result.testName} must be less than or equal to ${result.nhceRate.toFixed(2)}% + 2% 
-            (or ${allowedMaxPercent.toFixed(2)}%) to pass.
+        return {
+            ...hce,
+            adpRefund: adpRefund,
+            acpRefund: acpRefund,
+            totalRefund: adpRefund + acpRefund,
+            correctedADP: adpCorrectionData[index].correctedADP,
+            correctedACP: acpCorrectionData[index].correctedACP,
+        };
+    });
+
+    // 7. Render Results
+    displayResults({
+        nhceAdp, hceAdpAvg, maxHceAdp, adpPass,
+        nhceAcp, hceAcpAvg, maxHceAcp, acpPass,
+        hceCountActual,
+        correctionData: combinedCorrectionData
+    });
+}
+
+/**
+ * Renders the ADP and ACP test results and correction summary.
+ * @param {object} results - The results object from calculateAdpAcp.
+ */
+function displayResults(results) {
+    const adpPassText = results.adpPass ? 'PASS' : 'FAIL';
+    const acpPassText = results.acpPass ? 'PASS' : 'FAIL';
+    
+    const adpClass = results.adpPass ? 'text-success' : 'text-danger';
+    const acpClass = results.acpPass ? 'text-success' : 'text-danger';
+
+    // ADP Summary
+    const adpSummary = `
+        <p><span class="result-label">NHCE Average Deferral Percentage (ADP):</span> 
+            <span class="result-value">${results.nhceAdp.toFixed(2)}%</span>
+        </p>
+        <p><span class="result-label">Maximum Allowable HCE ADP:</span> 
+            <span class="result-value">${results.maxHceAdp.toFixed(2)}%</span>
+        </p>
+        <p><span class="result-label">Actual HCE Average ADP:</span> 
+            <span class="result-value">${results.hceAdpAvg.toFixed(2)}%</span>
+        </p>
+        <p><strong><span class="result-label">ADP Test Result:</span> 
+            <span class="result-value ${adpClass}">${adpPassText}</span></strong>
         </p>
     `;
 
-    if (!result.passed) {
-        correctionTable.style.display = 'block';
-        
-        const oldFooter = correctionTable.querySelector('tfoot');
-        if (oldFooter) oldFooter.remove();
+    // ACP Summary
+    const acpSummary = `
+        <p><span class="result-label">NHCE Average Contribution Percentage (ACP):</span> 
+            <span class="result-value">${results.nhceAcp.toFixed(2)}%</span>
+        </p>
+        <p><span class="result-label">Maximum Allowable HCE ACP:</span> 
+            <span class="result-value">${results.maxHceAcp.toFixed(2)}%</span>
+        </p>
+        <p><span class="result-label">Actual HCE Average ACP:</span> 
+            <span class="result-value">${results.hceAcpAvg.toFixed(2)}%</span>
+        </p>
+        <p><strong><span class="result-label">ACP Test Result:</span> 
+            <span class="result-value ${acpClass}">${acpPassText}</span></strong>
+        </p>
+    `;
+    
+    document.getElementById('adpResultBody').innerHTML = adpSummary;
+    document.getElementById('acpResultBody').innerHTML = acpSummary;
+    document.getElementById('correctionTableContainer').style.display = (results.adpPass && results.acpPass) ? 'none' : 'block';
 
-        correctionTable.insertAdjacentHTML('beforeend', `
-           <tfoot style="font-weight: bold; border-top: 2px solid #dc3545;">
-               <tr>
-                   <td colspan="2" style="text-align: right; padding-right: 10px;">Total Required ${result.testName === 'ADP' ? 'Refund' : 'Correction'}:</td>
-                   <td style="color: #dc3545;">${formatCurrency(result.requiredRefundTotal)}</td>
-                   <td></td>
-               </tr>
-           </tfoot>
-       `);
-       
-        correctionBody.innerHTML = ''; 
-        result.correctionData.forEach(hce => {
-            const newRow = correctionBody.insertRow();
-            newRow.innerHTML = `
-                <td>${hce.id}</td>
-                <td>${hce.rate.toFixed(2)}%</td>
-                <td style="font-weight: bold; color: ${hce.refund > 0 ? '#dc3545' : '#333'};">${formatCurrency(hce.refund)}</td>
-                <td>${hce.newRate.toFixed(2)}%</td>
-            `;
-        });
-        
-        correctionTable.insertAdjacentHTML('afterend', `<p class="hint-text" style="text-align: center; margin-top: 15px;">
-               The total dollar amount required to be ${result.testName === 'ADP' ? 'refunded' : 'corrected'} is calculated using the complex 'top-down' leveling method...
-           </p>`);
-
-    } else {
-        correctionBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #28a745; font-weight: bold;">No correction required. The test passed.</td></tr>`;
-    }
+    // Render Correction Table (if needed)
+    renderCorrectionTable(results.correctionData);
+    
+    // Show results card
+    document.getElementById('results-card').style.display = 'block';
 }
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    requestConfigReload();
-
-    const calculateButton = document.getElementById('calculateButton');
-    if (calculateButton) {
-        calculateButton.addEventListener('click', calculateADPAC);
-    }
-
-    const exportButton = document.getElementById('export-button');
-    if (exportButton) {
-        exportButton.addEventListener('click', async () => {
-            await exportPageToPDF(
-                "ADP/ACP NDT & Correction",
-                ["#adpResults", "#acpResults", "#hceDataTable", "#adpCorrectionTable", "#acpCorrectionTable"]
-            );
-        });
-    }
-});
-
-// --- PDF EXPORT (FINALIZED UTILITY) ---
-async function exportPageToPDF(title, elementSelectors) {
-    const loadingOverlay = document.getElementById('pdf-loading-overlay');
+/**
+ * Renders the detailed correction/refund table for HCEs.
+ * @param {Array<object>} correctionData - Array of HCE objects with refund details.
+ */
+function renderCorrectionTable(correctionData) {
+    const tableBody = document.getElementById('correctionBody');
+    tableBody.innerHTML = ''; // Clear previous results
     
-    // 1. Show loading overlay
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+    let totalAdpRefund = 0;
+    let totalAcpRefund = 0;
     
-    // 2. Allow UI to update before processing
+    correctionData.forEach(hce => {
+        totalAdpRefund += hce.adpRefund;
+        totalAcpRefund += hce.acpRefund;
+        
+        const row = `
+            <tr>
+                <td class="text-center">${hce.id}</td>
+                <td>${formatCurrency(hce.compensation)}</td>
+                <td class="${hce.adpRefund > 0 ? 'text-danger' : ''}">
+                    ${hce.adp.toFixed(2)}% $\to$ ${hce.correctedADP.toFixed(2)}%
+                </td>
+                <td class="${hce.adpRefund > 0 ? 'text-danger' : ''}">
+                    ${formatCurrency(hce.adpRefund)}
+                </td>
+                <td class="${hce.acpRefund > 0 ? 'text-danger' : ''}">
+                    ${hce.acp.toFixed(2)}% $\to$ ${hce.correctedACP.toFixed(2)}%
+                </td>
+                <td class="${hce.acpRefund > 0 ? 'text-danger' : ''}">
+                    ${formatCurrency(hce.acpRefund)}
+                </td>
+                <td class="${(hce.totalRefund || 0) > 0 ? 'font-bold' : ''}">
+                    ${formatCurrency(hce.totalRefund || 0)}
+                </td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('beforeend', row);
+    });
+    
+    // Add Total Row
+    const totalRow = `
+        <tr class="total-row">
+            <td colspan="3" class="text-right font-bold">Total Refunds Required:</td>
+            <td class="font-bold text-danger">${formatCurrency(totalAdpRefund)}</td>
+            <td></td>
+            <td class="font-bold text-danger">${formatCurrency(totalAcpRefund)}</td>
+            <td class="font-bold text-danger">${formatCurrency(totalAdpRefund + totalAcpRefund)}</td>
+        </tr>
+    `;
+    tableBody.insertAdjacentHTML('beforeend', totalRow);
+}
+
+// --- PDF EXPORT LOGIC (Requires html2canvas and jspdf to be loaded in the HTML) ---
+
+/**
+ * Exports the main calculation results to a PDF report.
+ */
+async function exportResultsToPdf() {
+    const overlay = document.getElementById('pdf-loading-overlay');
+    overlay.style.display = 'flex'; // Show loading screen
+
+    const title = 'ADP/ACP Nondiscrimination Test Report';
+    
+    // Define the elements to capture in the PDF
+    const elementSelectors = [
+        '.calculator-container h1',
+        '.calculator-container .description',
+        '#current-limits-display',
+        '.card.input-card',
+        '#results-card'
+    ];
+    
+    // A small delay to ensure rendering is complete before screenshotting
     await new Promise(resolve => setTimeout(resolve, 50)); 
 
     const { jsPDF } = window.jspdf;
@@ -453,33 +659,70 @@ async function exportPageToPDF(title, elementSelectors) {
     doc.text(title, 10, y);
     y += 5;
     
+    // Capture each selected element and add it to the PDF
     for (const selector of elementSelectors) {
         const element = document.querySelector(selector);
         if (element && element.style.display !== 'none') {
             try {
-                // Reduced scale to 1.0 and use JPEG for small file size (1-3MB)
-                const canvas = await html2canvas(element, { scale: 1.0 }); 
+                // Use a reduced scale and JPEG for small file size
+                const canvas = await html2canvas(element, { 
+                    scale: 1.0, 
+                    // This option is crucial to ensure the table is fully captured
+                    windowWidth: document.documentElement.offsetWidth,
+                    windowHeight: document.documentElement.offsetHeight,
+                    useCORS: true 
+                }); 
+                
                 const imgData = canvas.toDataURL('image/jpeg', 0.8); // 0.8 quality
                 
                 const imgProps = doc.getImageProperties(imgData);
-                const pdfWidth = doc.internal.pageSize.getWidth() - 20;
+                const pdfWidth = doc.internal.pageSize.getWidth() - 20; // 10mm padding on each side
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
+                // Check if the image will fit on the current page
                 if (y + pdfHeight > doc.internal.pageSize.getHeight() - 10) {
                     doc.addPage();
                     y = 10;
                 }
                 
                 doc.addImage(imgData, 'JPEG', 10, y, pdfWidth, pdfHeight);
-                y += pdfHeight + 5; 
+                y += pdfHeight + 5; // Add 5mm space after the image
             } catch (error) {
                 console.error(`Error capturing element ${selector}:`, error);
+                showError(`Failed to generate PDF for results: ${error.message}`);
             }
         }
     }
     
-    doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
-    
-    // 3. Hide loading overlay after download starts
-    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    doc.save(`${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
+    overlay.style.display = 'none'; // Hide loading screen
 }
+
+
+// --- INITIALIZATION ---
+
+window.addEventListener('DOMContentLoaded', function() {
+    // 1. Initial table setup
+    // Add initial 3 HCE rows for demonstration
+    for (let i = 0; i < 3; i++) {
+        addHceRow();
+    }
+    
+    // 2. Set event listeners
+    document.getElementById('run-test-button').addEventListener('click', calculateAdpAcp);
+    document.getElementById('add-hce-button').addEventListener('click', addHceRow);
+    document.getElementById('export-button').addEventListener('click', exportResultsToPdf);
+
+    // 3. Request config data when the calculator iframe is loaded
+    requestConfigReload();
+    
+    // 4. Set an initial timeout to ensure fallback limits are displayed if the message isn't received quickly
+    setTimeout(() => {
+        if (!CURRENT_PLAN_RULES) {
+            displayFallbackLimits();
+        }
+    }, 1000); 
+    
+    // 5. Hide results card initially
+    document.getElementById('results-card').style.display = 'none';
+});

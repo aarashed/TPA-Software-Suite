@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADP/ACP Data Importer & Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Papa Parse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Load jsPDF and html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        /* Configure Tailwind to use the Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg-light: #f9fafb;
+            --text-dark: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding-bottom: 50px; /* Space for the PDF overlay */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        .step-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .step-number {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 28px;
+            height: 28px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: var(--text-dark);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        
+        /* Data Grid specific styles */
+        #data-grid-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        #data-grid-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #data-grid-container th {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-light);
+            padding: 12px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        #data-grid-container th:hover {
+            background-color: #f3f4f6;
+        }
+        #data-grid-container td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+        }
+        #data-grid-container td[contenteditable="true"]:focus {
+            background-color: #fffbeb;
+            outline: 2px solid var(--primary);
+            border-radius: 4px;
+        }
+        .invalid-cell {
+            background-color: #fee2e2;
+            border: 1px solid var(--danger);
+        }
+        
+        /* Progress Overlay */
+        #progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Firebase Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Expose Firebase utilities globally for use in the script below
+        window.firebase = {
+            initializeApp,
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc,
+            setLogLevel,
+        };
+        
+        // Start the application initialization once Firebase is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+    
+    <!-- Progress Overlay (MUST be at the top level) -->
+    <div id="progress-overlay">
+        <div class="p-8 bg-gray-800 rounded-lg shadow-2xl text-center text-white">
+            <div class="spinner mx-auto mb-4"></div>
+            <p id="progress-message" class="font-bold text-lg">Loading plan configuration...</p>
+        </div>
+    </div>
+    
+    <!-- Main Application Container -->
+    <div class="container p-4 md:p-8">
+        
+        <!-- Tool Introduction -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">ADP/ACP Nondiscrimination Tester</h1>
+            <p class="text-gray-600">
+                This tool guides you through importing, validating, and analyzing employee contribution data to perform the **Actual Deferral Percentage (ADP)** and **Actual Contribution Percentage (ACP)** nondiscrimination tests. 
+                It helps identify **Highly Compensated Employees (HCEs)** who require corrective refunds and calculates the required refund amounts to ensure plan compliance.
+            </p>
+        </header>
+
+        <!-- Current Plan Config Display (Always visible) -->
+        <div class="card bg-indigo-50 border-indigo-200">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-2">Plan Configuration</h2>
+            <div id="current-limits-display" class="text-indigo-600 text-sm">Loading limits and HCE threshold...</div>
+        </div>
+        
+        <!-- Wizard Steps Container -->
+        <div id="wizard-container" class="space-y-6">
+            
+            <!-- Step 1: CSV Upload -->
+            <div id="step-1" class="step-content">
+                <div class="card">
+                    <div class="step-header"><span class="step-number">1</span> Upload Employee Data CSV</div>
+                    <p class="text-gray-500 mb-4">Please select the CSV file containing employee compensation and contribution data.</p>
+                    <input type="file" id="csv-file-input" accept=".csv" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <div id="upload-error" class="text-red-500 mt-2 font-medium hidden"></div>
+                    <button onclick="handleFileUpload()" id="upload-btn" class="btn-primary mt-4 disabled:opacity-50" disabled>
+                        Read CSV Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Column Mapping -->
+            <div id="step-2" class="step-content hidden">
+                <div class="card">
+                    <div class="step-header"><span class="step-number">2</span> Map CSV Columns to System Fields</div>
+                    <p class="text-gray-500 mb-4">Match the columns from your uploaded file to the required system data fields. <span class="font-bold">ADP requires Deferral and Comp. ACP requires After-Tax and Comp.</span></p>
+                    <div id="mapping-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Mapping dropdowns will be inserted here -->
+                    </div>
+                    <div id="mapping-error" class="text-red-500 mt-4 font-medium hidden"></div>
+                    <button onclick="loadDataGrid()" class="btn-primary mt-6">
+                        Confirm Mapping & View Data Grid
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Data Grid & Validation -->
+            <div id="step-3" class="step-content hidden">
+                <div class="card">
+                    <div class="step-header"><span class="step-number">3</span> Review and Validate Data</div>
+                    <p class="text-gray-500 mb-4">You can edit values directly in the table. Monetary fields require numeric data (Compensation, Contributions). HCE Status must be 'Y' or 'N'.</p>
+                    
+                    <div id="data-grid-controls" class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-4">
+                        <input type="text" id="grid-filter-input" placeholder="Filter by Employee ID or HCE Status..." class="px-3 py-2 border rounded-lg focus:ring-primary focus:border-primary w-full sm:w-1/3">
+                        <button onclick="addNewRecord()" class="btn-secondary flex-shrink-0">
+                            Add New Record
+                        </button>
+                        <button onclick="exportDataToCSV()" class="btn-secondary flex-shrink-0">
+                            Export Grid Data (CSV)
+                        </button>
+                    </div>
+
+                    <div id="data-grid-container">
+                        <!-- Editable table will be inserted here -->
+                    </div>
+                    <div id="validation-summary" class="text-red-500 mt-4 font-medium hidden"></div>
+
+                    <button onclick="goToStep(4)" class="btn-primary mt-6">
+                        Continue to Calculation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Calculation & Results -->
+            <div id="step-4" class="step-content hidden">
+                <div class="card">
+                    <div class="step-header"><span class="step-number">4</span> Calculate Results & Corrections</div>
+                    <button onclick="calculateTests()" class="btn-primary mb-4">
+                        Run ADP/ACP Nondiscrimination Test
+                    </button>
+                    
+                    <div id="calculation-results" class="space-y-6 mt-4">
+                        <p class="text-gray-500">Press 'Run Test' to begin calculation. Results and correction tables will appear below.</p>
+                    </div>
+                </div>
+
+                <!-- ADP Results -->
+                <div id="adp-result-card" class="card hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">ADP Test Results</h2>
+                    <div id="adp-test-result" class="text-lg font-semibold mb-3"></div>
+                    <div id="adp-hce-details"></div>
+                    <h3 class="text-xl font-semibold mt-6 mb-3 border-b pb-2">ADP Correction Table (HCEs)</h3>
+                    <div id="adp-correction-container">
+                        <table class="min-w-full divide-y divide-gray-200" id="adp-correction-table">
+                            <thead><tr><th>ID</th><th>HCE Status</th><th>Comp.</th><th>ADP%</th><th>Max Allowable Deferral</th><th>Refund Amount</th></tr></thead>
+                            <tbody id="adpCorrectionBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ACP Results -->
+                <div id="acp-result-card" class="card hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">ACP Test Results</h2>
+                    <div id="acp-test-result" class="text-lg font-semibold mb-3"></div>
+                    <div id="acp-hce-details"></div>
+                    <h3 class="text-xl font-semibold mt-6 mb-3 border-b pb-2">ACP Correction Table (HCEs)</h3>
+                    <div id="acp-correction-container">
+                        <table class="min-w-full divide-y divide-gray-200" id="acp-correction-table">
+                            <thead><tr><th>ID</th><th>HCE Status</th><th>Comp.</th><th>ACP%</th><th>Max Allowable Contribution</th><th>Refund Amount</th></tr></thead>
+                            <tbody id="acpCorrectionBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- PDF Export Button -->
+                <button onclick="exportToPDF()" id="export-pdf-btn" class="btn-primary w-full mt-6 flex justify-center items-center hidden">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM2 18h16v2H2v-2z"></path></svg>
+                    Export Full Report to PDF
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Firebase Configuration and Main Script -->
+    <script>
+        // Global State Variables
+        let db = null;
+        let auth = null;
+        let userId = null;
+        let CURRENT_PLAN_RULES = null;
+
+        // ADP/ACP Limits/Rules
+        const FALLBACK_LIMITS_KEYS = { hce_comp_test: 155000 };
+        const FALLBACK_RULES_KEYS = { safe_harbor: false };
+        function getLimit(key) {
+            let value = FALLBACK_LIMITS_KEYS[key];
+            if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.LIMITS && CURRENT_PLAN_RULES.LIMITS[key] !== undefined) {
+                value = CURRENT_PLAN_RULES.LIMITS[key];
+            }
+            if (typeof value === 'number' && !isNaN(value)) {
+                return value;
+            }
+            return FALLBACK_LIMITS_KEYS[key]; 
+        }
+        function getRule(key) {
+            let value = FALLBACK_RULES_KEYS[key];
+            if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.RULES && CURRENT_PLAN_RULES.RULES[key] !== undefined) {
+                value = CURRENT_PLAN_RULES.RULES[key];
+            }
+            return value; 
+        }
+
+        // CSV Data Storage
+        let rawCsvData = []; // Array of arrays from Papa Parse
+        let systemData = []; // Array of objects, cleaned and validated
+
+        // Required System Fields for Mapping
+        const REQUIRED_FIELDS = [
+            { id: 'employeeId', label: 'Employee ID (Unique)', type: 'string', required: true },
+            { id: 'hceStatus', label: 'HCE Status (Y/N)', type: 'status', required: true },
+            { id: 'compensation', label: 'Plan Compensation ($)', type: 'currency', required: true },
+            { id: 'deferral', label: 'Elective Deferral (ADP $)', type: 'currency', required: true },
+            { id: 'match', label: 'Matching Contribution ($)', type: 'currency', required: false },
+            { id: 'afterTax', label: 'After-Tax Contribution (ACP $)', type: 'currency', required: false },
+        ];
+        let columnMapping = {}; // Stores mapping: systemFieldId: csvColumnName
+        const WIZARD_STEPS = 4;
+        let currentStep = 1;
+
+        // --- Utility Functions ---
+
+        function formatCurrency(value) {
+           // Converts a number to a dollar formatted string with 2 decimal places.
+           const num = parseFloat(value);
+           if (isNaN(num)) return '$0.00';
+           return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        function showProgress(message, show = true) {
+            const overlay = document.getElementById('progress-overlay');
+            const msgElement = document.getElementById('progress-message');
+            msgElement.textContent = message;
+            overlay.style.display = show ? 'flex' : 'none';
+        }
+        
+        function goToStep(step) {
+            if (step < 1 || step > WIZARD_STEPS) return;
+            currentStep = step;
+            for (let i = 1; i <= WIZARD_STEPS; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+            }
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // --- Plan Configuration & Firebase ---
+
+        async function initApp() {
+            showProgress('Initializing application and connecting to Firebase...');
+            try {
+                // Set up Firebase
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                
+                if (Object.keys(firebaseConfig).length === 0) {
+                    throw new Error("Firebase configuration not found.");
+                }
+
+                firebase.setLogLevel('Debug');
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.getFirestore(app);
+                auth = firebase.getAuth(app);
+                
+                await new Promise(resolve => {
+                    if (initialAuthToken) {
+                        firebase.signInWithCustomToken(auth, initialAuthToken).then(resolve).catch(e => {
+                            console.error("Custom token sign in failed, signing anonymously.", e);
+                            firebase.signInAnonymously(auth).then(resolve);
+                        });
+                    } else {
+                        firebase.signInAnonymously(auth).then(resolve);
+                    }
+                });
+
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                console.log("Firebase initialized. User ID:", userId);
+
+                // Load plan configuration
+                await requestConfigReload();
+                goToStep(1); // Start the wizard
+                
+            } catch (error) {
+                console.error("Application initialization failed:", error);
+                document.getElementById('current-limits-display').innerHTML = `<p class="text-red-500 font-bold">Initialization Error: ${error.message}. Using fallback limits.</p>`;
+                goToStep(1);
+            } finally {
+                showProgress('', false);
+            }
+        }
+        
+        async function requestConfigReload() {
+            showProgress('Loading plan configuration data...');
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network time
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const docRef = firebase.doc(db, `artifacts/${appId}/public/data/plan-config/latest`);
+
+            try {
+                const docSnap = await firebase.getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    CURRENT_PLAN_RULES = docSnap.data();
+                    console.log("Plan rules loaded:", CURRENT_PLAN_RULES);
+                } else {
+                    console.warn("No plan configuration document found. Using fallback limits.");
+                    CURRENT_PLAN_RULES = null;
+                }
+
+                displayPlanConfig();
+                
+            } catch (error) {
+                console.error("Error loading plan config:", error);
+                document.getElementById('current-limits-display').innerHTML = `<p class="text-red-500 font-bold">Error retrieving config from Firestore. Using fallback limits.</p>`;
+            } finally {
+                showProgress('', false);
+            }
+        }
+
+        function displayPlanConfig() {
+            const hceLimit = getLimit('hce_comp_test');
+            const safeHarbor = getRule('safe_harbor');
+
+            const rulesText = safeHarbor ? 
+                `<span class="text-green-600 font-semibold">Yes</span> (ADP/ACP tests may be simplified)` : 
+                `<span class="text-red-600 font-semibold">No</span> (Full ADP/ACP tests required)`;
+
+            document.getElementById('current-limits-display').innerHTML = `
+                <p>
+                    <span class="font-semibold">HCE Compensation Threshold:</span> ${formatCurrency(hceLimit)} (Used to determine HCE status for the plan year).
+                </p>
+                <p>
+                    <span class="font-semibold">Safe Harbor Status:</span> ${rulesText}
+                </p>
+                <p class="mt-2 text-xs text-indigo-500">
+                    If this data is incorrect, please update the central configuration dashboard.
+                </p>
+            `;
+        }
+        
+        // --- Step 1: CSV Upload ---
+
+        document.getElementById('csv-file-input').addEventListener('change', (e) => {
+            document.getElementById('upload-btn').disabled = !e.target.files.length;
+        });
+
+        async function handleFileUpload() {
+            const fileInput = document.getElementById('csv-file-input');
+            const file = fileInput.files[0];
+            const errorDiv = document.getElementById('upload-error');
+            errorDiv.classList.add('hidden');
+            
+            if (!file) {
+                errorDiv.textContent = 'Please select a file.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            showProgress('Reading CSV file. Please wait...', true);
+            
+            await new Promise(resolve => {
+                Papa.parse(file, {
+                    header: false, // Read as array of arrays first
+                    dynamicTyping: false,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        rawCsvData = results.data;
+                        if (rawCsvData.length > 0) {
+                            renderMappingStep();
+                            goToStep(2);
+                        } else {
+                            errorDiv.textContent = 'The uploaded CSV file is empty.';
+                            errorDiv.classList.remove('hidden');
+                        }
+                        resolve();
+                    },
+                    error: function(error) {
+                        errorDiv.textContent = `Error parsing CSV: ${error.message}`;
+                        errorDiv.classList.remove('hidden');
+                        resolve();
+                    }
+                });
+            });
+
+            showProgress('', false);
+        }
+
+        // --- Step 2: Column Mapping ---
+
+        function renderMappingStep() {
+            const mappingFieldsDiv = document.getElementById('mapping-fields');
+            mappingFieldsDiv.innerHTML = '';
+            
+            if (rawCsvData.length === 0) return;
+
+            const csvColumns = rawCsvData[0]; // Assume first row is headers
+
+            REQUIRED_FIELDS.forEach(field => {
+                const isRequired = field.required ? '<span class="text-red-500">*</span>' : '';
+                const fieldHtml = `
+                    <div class="input-group">
+                        <label class="block text-sm font-medium text-gray-700">
+                            ${field.label} ${isRequired}
+                        </label>
+                        <select id="map-${field.id}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md shadow-sm">
+                            <option value="">-- Select CSV Column --</option>
+                            ${csvColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                mappingFieldsDiv.innerHTML += fieldHtml;
+            });
+
+            // Try to auto-map common names
+            csvColumns.forEach(csvCol => {
+                const lowerCol = csvCol.toLowerCase().replace(/[^a-z0-9]/g, '');
+                REQUIRED_FIELDS.forEach(field => {
+                    const fieldId = field.id;
+                    const mapSelect = document.getElementById(`map-${fieldId}`);
+                    
+                    if (mapSelect && mapSelect.value === '') {
+                        if ((fieldId === 'compensation' && (lowerCol.includes('comp') || lowerCol.includes('wage'))) ||
+                            (fieldId === 'deferral' && (lowerCol.includes('deferral') || lowerCol.includes('401k'))) ||
+                            (fieldId === 'afterTax' && (lowerCol.includes('aftertax') || lowerCol.includes('acp'))) ||
+                            (fieldId === 'hceStatus' && (lowerCol.includes('hce') || lowerCol.includes('status'))) ||
+                            (fieldId === 'employeeId' && (lowerCol.includes('id') || lowerCol.includes('employee')))) {
+                            
+                            mapSelect.value = csvCol;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // --- Step 3: Data Grid & Validation ---
+
+        function validateData(data) {
+            let isValid = true;
+            data.forEach(row => {
+                let rowValid = true;
+                REQUIRED_FIELDS.forEach(field => {
+                    const value = row[field.id];
+                    let cellValid = true;
+
+                    if (field.required && (value === undefined || value === null || String(value).trim() === '')) {
+                        cellValid = false;
+                    } else if (field.type === 'currency' && value !== null && value !== undefined && String(value).trim() !== '') {
+                        const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,""));
+                        if (isNaN(numericValue) || numericValue < 0) cellValid = false;
+                    } else if (field.type === 'status' && value !== null && value !== undefined && String(value).trim() !== '') {
+                        const status = String(value).trim().toUpperCase();
+                        if (status !== 'Y' && status !== 'N') cellValid = false;
+                    }
+                    
+                    row[field.id + 'Valid'] = cellValid;
+                    if (!cellValid) rowValid = false;
+                });
+                row.rowValid = rowValid;
+                if (!rowValid) isValid = false;
+            });
+            return isValid;
+        }
+
+        async function loadDataGrid() {
+            const mappingErrorDiv = document.getElementById('mapping-error');
+            mappingErrorDiv.classList.add('hidden');
+            columnMapping = {};
+            let isMappingComplete = true;
+
+            // 1. Collect Mapping
+            REQUIRED_FIELDS.forEach(field => {
+                const selectElement = document.getElementById(`map-${field.id}`);
+                columnMapping[field.id] = selectElement ? selectElement.value : '';
+                if (field.required && !columnMapping[field.id]) {
+                    isMappingComplete = false;
+                }
+            });
+
+            if (!isMappingComplete) {
+                mappingErrorDiv.textContent = 'Please map all required fields (marked with *).';
+                mappingErrorDiv.classList.remove('hidden');
+                return;
+            }
+
+            showProgress('Processing data and applying mapping rules...');
+            await new Promise(resolve => setTimeout(resolve, 500)); 
+
+            // 2. Map Data
+            const headers = rawCsvData[0];
+            const dataRows = rawCsvData.slice(1);
+            systemData = [];
+
+            dataRows.forEach((row, index) => {
+                let newRecord = { originalIndex: index + 1, recordId: crypto.randomUUID() };
+                headers.forEach((header, colIndex) => {
+                    const value = row[colIndex] ? String(row[colIndex]).trim() : '';
+
+                    // Find which system field this column maps to
+                    for (const sysId in columnMapping) {
+                        if (columnMapping[sysId] === header) {
+                            newRecord[sysId] = value;
+                            break;
+                        }
+                    }
+                });
+                systemData.push(newRecord);
+            });
+            
+            // 3. Initial Validation
+            const allValid = validateData(systemData);
+            updateValidationSummary(allValid);
+
+            // 4. Render Grid
+            renderDataGrid(systemData);
+            document.getElementById('grid-filter-input').oninput = filterDataGrid;
+            
+            goToStep(3);
+            showProgress('', false);
+        }
+
+        function renderDataGrid(data) {
+            const container = document.getElementById('data-grid-container');
+            container.innerHTML = `
+                <table id="data-grid">
+                    <thead>
+                        <tr>
+                            ${REQUIRED_FIELDS.map(field => 
+                                `<th data-sort-key="${field.id}" onclick="sortDataGrid('${field.id}')">${field.label}</th>`
+                            ).join('')}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-grid-body">
+                        ${data.map(record => renderDataRow(record)).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            // Add event listeners for editing
+            document.querySelectorAll('#data-grid-body [contenteditable="true"]').forEach(cell => {
+                cell.addEventListener('input', handleCellEdit);
+            });
+        }
+        
+        function renderDataRow(record) {
+            let rowClass = record.rowValid ? '' : 'bg-red-50 hover:bg-red-100';
+            let cells = REQUIRED_FIELDS.map(field => {
+                const value = record[field.id] || '';
+                const cellValid = record[field.id + 'Valid'];
+                const cellClass = cellValid ? '' : 'invalid-cell';
+                const isEditable = field.id !== 'recordId';
+
+                // Display formatting for compensation/currency fields
+                const displayValue = field.type === 'currency' && !isNaN(parseFloat(value)) ? formatCurrency(parseFloat(value)).replace('$', '') : value;
+                
+                return `<td 
+                            data-field="${field.id}" 
+                            data-type="${field.type}"
+                            contenteditable="${isEditable}" 
+                            class="${cellClass}"
+                            title="${cellValid ? '' : 'Invalid data: Must be a number/Y/N'}"
+                        >${displayValue}</td>`;
+            }).join('');
+
+            return `
+                <tr data-record-id="${record.recordId}" class="${rowClass}">
+                    ${cells}
+                    <td>
+                        <button onclick="deleteRecord('${record.recordId}')" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function handleCellEdit(event) {
+            const cell = event.target;
+            const recordId = cell.closest('tr').dataset.recordId;
+            const fieldId = cell.dataset.field;
+            const fieldType = cell.dataset.type;
+            let rawValue = cell.textContent.trim();
+            
+            const record = systemData.find(r => r.recordId === recordId);
+            if (!record) return;
+
+            let cleanValue = rawValue;
+            let isValid = true;
+            const isRequired = REQUIRED_FIELDS.find(f => f.id === fieldId)?.required;
+
+            // Cleanup and Validation Logic
+            if (fieldType === 'currency') {
+                cleanValue = parseFloat(rawValue.replace(/[^0-9.-]+/g, ""));
+                if (isNaN(cleanValue) || (isRequired && cleanValue < 0)) isValid = false;
+                if (!isRequired && rawValue === '') { cleanValue = ''; isValid = true; } // Allow empty non-required fields
+            } else if (fieldType === 'status') {
+                cleanValue = rawValue.toUpperCase();
+                if (cleanValue !== 'Y' && cleanValue !== 'N') isValid = false;
+            } else if (isRequired && rawValue === '') {
+                 isValid = false;
+            }
+
+            // Update data model
+            record[fieldId] = cleanValue;
+            record[fieldId + 'Valid'] = isValid;
+
+            // Re-validate the row and update classes
+            validateData([record]); 
+            
+            if (record.rowValid) {
+                cell.closest('tr').classList.remove('bg-red-50', 'hover:bg-red-100');
+            } else {
+                cell.closest('tr').classList.add('bg-red-50', 'hover:bg-red-100');
+            }
+            cell.classList.toggle('invalid-cell', !isValid);
+
+            updateValidationSummary(systemData.every(r => r.rowValid));
+        }
+
+        function updateValidationSummary(allValid) {
+            const summary = document.getElementById('validation-summary');
+            if (allValid) {
+                summary.classList.add('hidden');
+                document.getElementById('step-3').querySelector('.btn-primary').disabled = false;
+            } else {
+                summary.textContent = 'WARNING: Some records contain invalid or missing data. Please correct all highlighted cells before continuing.';
+                summary.classList.remove('hidden');
+                document.getElementById('step-3').querySelector('.btn-primary').disabled = true;
+            }
+        }
+        
+        function deleteRecord(recordId) {
+            systemData = systemData.filter(r => r.recordId !== recordId);
+            renderDataGrid(systemData.filter(filterData));
+            updateValidationSummary(systemData.every(r => r.rowValid));
+        }
+
+        function addNewRecord() {
+            const newRecord = { 
+                recordId: crypto.randomUUID(), 
+                employeeId: 'New ID', 
+                hceStatus: 'N', 
+                compensation: 0, 
+                deferral: 0, 
+                match: 0, 
+                afterTax: 0 
+            };
+            validateData([newRecord]);
+            systemData.unshift(newRecord); // Add to top
+            renderDataGrid(systemData.filter(filterData));
+            updateValidationSummary(systemData.every(r => r.rowValid));
+        }
+
+        // Sorting Logic
+        let currentSort = { key: 'employeeId', direction: 1 }; // 1 for asc, -1 for desc
+
+        function sortDataGrid(key) {
+            if (currentSort.key === key) {
+                currentSort.direction *= -1;
+            } else {
+                currentSort.key = key;
+                currentSort.direction = 1;
+            }
+
+            systemData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                // Handle numeric sorting for currency fields
+                if (REQUIRED_FIELDS.find(f => f.id === key)?.type === 'currency') {
+                    valA = parseFloat(String(valA).replace(/[^0-9.-]+/g,"")) || 0;
+                    valB = parseFloat(String(valB).replace(/[^0-9.-]+/g,"")) || 0;
+                } else if (REQUIRED_FIELDS.find(f => f.id === key)?.type === 'status') {
+                    valA = (valA || '').toUpperCase();
+                    valB = (valB || '').toUpperCase();
+                } else {
+                    valA = String(valA || '');
+                    valB = String(valB || '');
+                }
+
+                if (valA < valB) return -1 * currentSort.direction;
+                if (valA > valB) return 1 * currentSort.direction;
+                return 0;
+            });
+            renderDataGrid(systemData.filter(filterData));
+        }
+        
+        // Filtering Logic
+        function filterData(record) {
+            const filterText = document.getElementById('grid-filter-input').value.toLowerCase();
+            if (!filterText) return true;
+            
+            // Check ID, HCE Status, or Compensation string for match
+            return (record.employeeId && String(record.employeeId).toLowerCase().includes(filterText)) ||
+                   (record.hceStatus && String(record.hceStatus).toLowerCase().includes(filterText)) ||
+                   (record.compensation && String(record.compensation).includes(filterText));
+        }
+        
+        function filterDataGrid() {
+            renderDataGrid(systemData.filter(filterData));
+        }
+        
+        // --- Step 4: Calculation ---
+
+        function parseNumeric(value) {
+            const num = parseFloat(String(value).replace(/[^0-9.-]+/g,""));
+            return isNaN(num) ? 0 : num;
+        }
+
+        function determineHCE(record, hceLimit) {
+            // First, check the explicit status in the data
+            const status = String(record.hceStatus).toUpperCase();
+            if (status === 'Y') return true;
+            if (status === 'N') return false;
+
+            // If status is not Y/N, check compensation (This is simplified for this tool)
+            return parseNumeric(record.compensation) > hceLimit;
+        }
+
+        async function calculateTests() {
+            showProgress('Running ADP/ACP Nondiscrimination Tests. This involves complex data processing...', true);
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate calculation time
+
+            const hceLimit = getLimit('hce_comp_test');
+            const data = systemData.map(record => ({
+                id: record.employeeId,
+                compensation: parseNumeric(record.compensation),
+                deferral: parseNumeric(record.deferral),
+                afterTax: parseNumeric(record.afterTax),
+                isHCE: determineHCE(record, hceLimit)
+            }));
+            
+            const nhceData = data.filter(e => !e.isHCE && e.compensation > 0);
+            const hceData = data.filter(e => e.isHCE && e.compensation > 0);
+            
+            // --- ADP Test Calculation ---
+            const nhceAdp = nhceData.reduce((sum, e) => sum + (e.deferral / e.compensation), 0) * 100 / nhceData.length;
+            const hceAdp = hceData.reduce((sum, e) => sum + (e.deferral / e.compensation), 0) * 100 / hceData.length;
+
+            const maxHceAdp = (nhceAdp <= 2) ? nhceAdp * 2 : (nhceAdp <= 8) ? nhceAdp + 2 : nhceAdp * 1.25;
+            
+            let adpTestPassed = hceAdp <= maxHceAdp;
+            let requiredRefunds = 0;
+            
+            // --- ADP Correction ---
+            let adpCorrectionTable = [];
+            
+            if (!adpTestPassed) {
+                // Calculate Required Correction Refund (Simplified approach: reduce HCEs highest to lowest until test passes)
+                let correctionNeeded = true;
+                let currentHceAdp = hceAdp;
+                let currentHceData = [...hceData].sort((a, b) => (b.deferral / b.compensation) - (a.deferral / a.compensation));
+
+                while (correctionNeeded) {
+                    let totalHceDeferral = currentHceData.reduce((sum, e) => sum + e.deferral, 0);
+                    let totalHceComp = currentHceData.reduce((sum, e) => sum + e.compensation, 0);
+                    currentHceAdp = (totalHceDeferral / totalHceComp) * 100;
+
+                    if (currentHceAdp <= maxHceAdp) {
+                        correctionNeeded = false;
+                        break;
+                    }
+
+                    // Find the HCE with the highest ADP% currently
+                    const highestHCE = currentHceData.reduce((max, e) => {
+                        return (e.deferral / e.compensation) > (max.deferral / max.compensation) ? e : max;
+                    }, currentHceData[0]);
+
+                    if (!highestHCE) { break; } // Safety break
+
+                    // Target deferral for this HCE to match the max allowable ADP%
+                    const targetDeferral = highestHCE.compensation * (maxHceAdp / 100);
+                    const refund = Math.max(0, highestHCE.deferral - targetDeferral);
+
+                    if (refund > 0) {
+                        highestHCE.deferral -= refund;
+                        requiredRefunds += refund;
+                        
+                        const existingEntry = adpCorrectionTable.find(e => e.id === highestHCE.id);
+                        if (existingEntry) {
+                            existingEntry.refundAmount += refund;
+                        } else {
+                            adpCorrectionTable.push({
+                                id: highestHCE.id,
+                                compensation: highestHCE.compensation,
+                                adp: ((highestHCE.deferral + refund) / highestHCE.compensation) * 100,
+                                maxDeferral: targetDeferral,
+                                refundAmount: refund
+                            });
+                        }
+                    } else {
+                         // If no one needs a refund, but the test still fails (unlikely with this method, but for completeness)
+                        break;
+                    }
+                }
+            }
+            
+            // --- ADP Results Rendering ---
+            const adpResultDiv = document.getElementById('adp-test-result');
+            const adpDetailsDiv = document.getElementById('adp-hce-details');
+            const adpBody = document.getElementById('adpCorrectionBody');
+            
+            adpResultDiv.innerHTML = `
+                NHCE ADP: <span class="text-secondary font-bold">${nhceAdp.toFixed(2)}%</span> | 
+                HCE ADP: <span class="font-bold" style="color:${adpTestPassed ? 'var(--secondary)' : 'var(--danger)'};">${hceAdp.toFixed(2)}%</span> | 
+                Max Allowable HCE ADP: <span class="font-bold">${maxHceAdp.toFixed(2)}%</span>
+            `;
+            
+            adpDetailsDiv.innerHTML = `
+                <p class="mt-2 text-lg font-bold ${adpTestPassed ? 'text-secondary' : 'text-danger'}">
+                    ADP Test ${adpTestPassed ? 'PASSED' : 'FAILED'}.
+                </p>
+                ${!adpTestPassed ? `<p class="text-md text-gray-700">Total Required Corrective Refund for HCEs: <span class="font-extrabold">${formatCurrency(requiredRefunds)}</span></p>` : ''}
+            `;
+
+            adpBody.innerHTML = adpCorrectionTable.map(row => `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>Y</td>
+                    <td>${formatCurrency(row.compensation)}</td>
+                    <td>${row.adp.toFixed(2)}%</td>
+                    <td>${formatCurrency(row.maxDeferral)}</td>
+                    <td><span class="font-bold text-red-600">${formatCurrency(row.refundAmount)}</span></td>
+                </tr>
+            `).join('');
+            document.getElementById('adp-result-card').classList.remove('hidden');
+
+            // --- ACP Test Calculation (Placeholder - follows similar logic) ---
+            document.getElementById('acp-test-result').innerHTML = `ACP Test calculation logic goes here (similar to ADP but using After-Tax contributions).`;
+            document.getElementById('acp-hce-details').innerHTML = `<p class="text-orange-500">ACP Test logic requires full implementation using Match/After-Tax data. Currently placeholder.</p>`;
+            document.getElementById('acp-result-card').classList.remove('hidden');
+            document.getElementById('acpCorrectionBody').innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">Correction details will be calculated here.</td></tr>';
+
+            // Final actions
+            document.getElementById('export-pdf-btn').classList.remove('hidden');
+            showProgress('', false);
+        }
+
+
+        // --- PDF Export ---
+
+        async function exportToPDF() {
+            showProgress('Generating PDF Report...', true);
+
+            // Wait a moment for any potential final DOM rendering
+            await new Promise(resolve => setTimeout(resolve, 50)); 
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            let y = 10;
+            const title = "ADP/ACP Nondiscrimination Test Report";
+            
+            doc.setFontSize(18);
+            doc.text(title, 10, y);
+            y += 5;
+            
+            // Elements to capture (Config, Data Grid, ADP Results, ACP Results)
+            const elementSelectors = [
+                '#current-limits-display', 
+                '#data-grid-container', 
+                '#adp-result-card',
+                '#acp-result-card'
+            ];
+
+            for (const selector of elementSelectors) {
+                const element = document.querySelector(selector);
+                if (element && element.style.display !== 'none' && element.offsetWidth > 0 && element.offsetHeight > 0) {
+                    try {
+                        const canvas = await html2canvas(element, { 
+                            scale: 1.0, 
+                            // Ensure colors/styling from the card are captured
+                            useCORS: true 
+                        }); 
+                        const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                        
+                        const imgProps = doc.getImageProperties(imgData);
+                        const pdfWidth = doc.internal.pageSize.getWidth() - 20;
+                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                        if (y + pdfHeight > doc.internal.pageSize.getHeight() - 10) {
+                            doc.addPage();
+                            y = 10;
+                        }
+                        
+                        // Add element title if it's a card
+                        const cardTitle = element.querySelector('h2');
+                        if (cardTitle) {
+                             doc.setFontSize(14);
+                             doc.text(cardTitle.textContent, 10, y + 2);
+                             y += 8;
+                        }
+
+                        doc.addImage(imgData, 'JPEG', 10, y, pdfWidth, pdfHeight);
+                        y += pdfHeight + 5; 
+                    } catch (error) {
+                        console.error(`Error capturing element ${selector}:`, error);
+                    }
+                }
+            }
+            
+            doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+            showProgress('', false);
+        }
+
+        // --- Data Export (CSV) ---
+        function exportDataToCSV() {
+            if (systemData.length === 0) {
+                console.error("No data to export.");
+                return;
+            }
+
+            const headerRow = REQUIRED_FIELDS.map(f => f.label);
+            const dataRows = systemData.map(record => 
+                REQUIRED_FIELDS.map(f => record[f.id])
+            );
+            
+            const csv = Papa.unparse([headerRow, ...dataRows]);
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            
+            // Create a temporary URL and click the link to trigger download
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "adp_acp_grid_export.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

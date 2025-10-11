@@ -1,65 +1,1027 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>401(a)(4) Rate Group Allocation Tester</title>
-   <link rel="stylesheet" href="rate_group_tester.css">
-<link rel="stylesheet" href="../iframe_content_styles.css"> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401(a)(4) Rate Group Allocation Tester</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Papa Parse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Load jsPDF and html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        /* Configure Tailwind to use the Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        :root {
+            --primary: #059669; /* emerald-600 */
+            --primary-dark: #047857; /* emerald-700 */
+            --secondary: #3b82f6; /* blue-500 */
+            --danger: #ef4444;
+            --bg-light: #f9fafb;
+            --text-dark: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .calculator-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        input[type="number"], input[type="file"], input[type="text"], select, .btn {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus, input[type="file"]:focus, input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            outline: none;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: var(--text-dark);
+            border-color: #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .result-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        
+        .result-info {
+            background-color: #eff6ff; /* blue-50 */
+            color: #1e40af; /* blue-800 */
+            border: 1px solid #bfdbfe; /* blue-200 */
+        }
+
+        .result-pass {
+            background-color: #ecfdf5; /* green-50 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #a7f3d0; /* green-200 */
+        }
+
+        .result-fail {
+            background-color: #fef2f2; /* red-50 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #fecaca; /* red-200 */
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .step-item {
+            flex-grow: 1;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 3px solid #e5e7eb;
+            font-weight: 600;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .step-item.active {
+            color: var(--primary-dark);
+            border-bottom-color: var(--primary-dark);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            user-select: none;
+        }
+        .error-message {
+            color: var(--danger);
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        /* Sort indicators */
+        .hce-true {
+            background-color: #fffbeb; /* amber-50 */
+        }
+    </style>
 </head>
 <body>
 
-   <div class="calculator-container">
-        <h1>401(a)(4) Rate Group Allocation Tester</h1>
-        <p class="description">Tests custom allocation formulas (e.g., Cross-Tested) for General Nondiscrimination by checking if each HCE's Rate Group satisfies the 410(b) Coverage Test.</p>
-       
-       <div class="card input-card">
-           <h2>Employee Data Entry (All Eligible Employees)</h2>
-           <p class="hint-text">Enter data for *every* employee eligible to receive a profit-sharing or non-match employer contribution.</p>
+    <div class="calculator-container">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">401(a)(4) Rate Group Allocation Tester</h1>
+        <p class="text-gray-600 mb-6 description">Tests defined contribution plan allocations for non-discrimination based on the Ratio Percentage Test for each HCE Rate Group.</p>
+        
+        <div class="flex justify-between items-center mb-6">
+            <div class="result-box result-info w-2/3" id="current-limits-display">
+                <p>Loading plan configuration...</p>
+            </div>
+            <!-- START OVER BUTTON -->
+            <button id="start-over-button" onclick="startOver()" class="btn btn-danger flex items-center justify-center w-1/4" title="Clears all data, inputs, and resets the calculator to Step 1.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="mr-2">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                </svg>
+                Start Over
+            </button>
+            <!-- END START OVER BUTTON -->
+        </div>
 
-           <table id="employeeDataTable">
-               <thead>
-                   <tr>
-                       <th>ID</th>
-                       <th>Status</th>
-                       <th>Comp ($)</th>
-                       <th>Allocation ($)</th>
-                       <th><button onclick="removeEmployee(this)" disabled>🗑️</button></th>
-                   </tr>
-               </thead>
-               <tbody id="employeeTableBody">
-                   </tbody>
-           </table>
+        <div class="step-indicator">
+            <div class="step-item active" id="step-1-indicator" onclick="showStep(1)">1. Test Inputs</div>
+            <div class="step-item" id="step-2-indicator" onclick="showStep(2)">2. Employee Data</div>
+            <div class="step-item" id="step-3-indicator" onclick="showStep(3)">3. Results & Test Summary</div>
+        </div>
 
-           <button onclick="addEmployee('HCE')" class="btn-secondary">Add HCE</button>
-           <button onclick="addEmployee('NHCE')" class="btn-secondary">Add NHCE</button>
-           
-           <button onclick="runRateGroupTest()" class="btn-primary">Run 401(a)(4) Rate Group Test</button>
-       </div>
+        <div id="calculator-content">
+            <!-- STEP 1: TEST INPUTS -->
+            <div id="step-1-inputs" class="card">
+                <h2 class="text-xl font-bold mb-4">Step 1: Allocation & Ratio Inputs</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="input-group">
+                        <label for="ratioThreshold">Ratio Percentage Threshold (%)</label>
+                        <input type="number" id="ratioThreshold" value="70.0" min="0" max="100" step="0.01" class="text-lg">
+                        <small class="text-gray-500">The minimum required ratio percentage to satisfy the safe harbor coverage test (IRC Sec. 410(b)).</small>
+                    </div>
+                    <div class="input-group">
+                        <label for="allocationType">Allocation Type Being Tested</label>
+                        <select id="allocationType" class="text-lg">
+                            <option value="Profit Sharing">Profit Sharing</option>
+                            <option value="New Comparability">New Comparability</option>
+                            <option value="Other">Other Defined Contribution Allocation</option>
+                        </select>
+                        <small class="text-gray-500">The specific contribution type that the rate group test applies to.</small>
+                    </div>
+                </div>
 
-       <div class="card result-card" id="resultsSummary" style="display: none;">
-           <h2>Test Results Summary</h2>
-           <div id="summaryResults"></div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="showStep(2)" class="btn btn-primary">
+                        Proceed to Data Import (Step 2)
+                    </button>
+                </div>
+            </div>
 
-           <h3 style="color: #004d99;">Rate Group Details (HCEs Only)</h3>
-           <table id="rateGroupTable" class="rate-group-table">
-               <thead>
-                   <tr>
-                       <th>HCE ID</th>
-                       <th>Allocation Rate (%)</th>
-                       <th>% of NHCEs Covered</th>
-                       <th>Ratio % Test Result</th>
-                       <th>Status</th>
-                   </tr>
-               </thead>
-               <tbody id="rateGroupBody">
-                   </tbody>
-           </table>
-       </div>
+            <!-- STEP 2: DATA GRID/MAPPING CONTAINER -->
+            <div id="step-2-data-grid" class="card hidden">
+                <h2 class="text-xl font-bold mb-4">Step 2: Employee Data Import & Review</h2>
 
-       <div id="error-message" class="error-message"></div>
-   </div>
+                <!-- SUB-STEP 2A: CSV IMPORT CONTROLS -->
+                <div id="data-import-controls">
+                    <p class="text-sm text-gray-500 mb-4">You must input or upload data for **all** employees (HCEs and NHCEs).</p>
+                    
+                    <div class="flex space-x-4 mb-6">
+                        <div class="input-group w-1/2">
+                            <label for="csvFileInput">Upload All Employee Data (CSV)</label>
+                            <input type="file" id="csvFileInput" accept=".csv" class="py-2">
+                        </div>
+                        <div class="w-1/2 flex items-end">
+                             <button onclick="processCSV()" class="btn btn-secondary w-full">Process CSV File</button>
+                        </div>
+                    </div>
+                </div>
 
-   <script src="rate_group_tester.js"></script>
+                <!-- SUB-STEP 2B: COLUMN MAPPING INTERFACE (Hidden initially) -->
+                <div id="column-mapping-container" class="hidden">
+                    <h3 class="text-lg font-semibold mb-3">Map CSV Columns to System Fields</h3>
+                    <p class="text-sm text-gray-600 mb-4">Match your uploaded CSV columns to the required fields below. Select 'SKIP' for unused columns.</p>
+                    <div id="mapping-dropdowns" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <!-- Mapping dropdowns will be dynamically inserted here -->
+                    </div>
+                    <div class="flex justify-between">
+                         <button onclick="hideColumnMapping()" class="btn btn-secondary">
+                            &#x2190; Back to Upload
+                        </button>
+                        <button onclick="finalizeDataImport()" class="btn btn-primary">
+                            Finalize Import & Review Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SUB-STEP 2C: DATA GRID AND FILTERS (Hidden initially or if no data) -->
+                <div id="data-grid-view">
+                    <h3 class="text-lg font-semibold mt-6 mb-3">Employee Data Grid (Editable)</h3>
+                    
+                    <!-- FILTER INPUT -->
+                    <div class="input-group mb-4">
+                        <label for="dataFilter">Filter Employee Data (Name, Rate, or Status)</label>
+                        <input type="text" id="dataFilter" oninput="filterDataGrid()" placeholder="Search by name, allocation rate, or HCE status..." class="text-base">
+                    </div>
+                    
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table id="dataGrid" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th onclick="sortDataGrid('name')">Name <span id="sort-name"></span></th>
+                                    <th onclick="sortDataGrid('isHce')">HCE Status <span id="sort-isHce"></span></th>
+                                    <th onclick="sortDataGrid('compensation')">Compensation ($) <span id="sort-compensation">&#x25BC;</span></th>
+                                    <th onclick="sortDataGrid('contribution')">Total Allocation ($) <span id="sort-contribution"></span></th>
+                                    <th onclick="sortDataGrid('rate')">Allocation Rate (%) <span id="sort-rate"></span></th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataGridBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Data rows will be inserted here -->
+                                <tr><td colspan="6" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click 'Add Employee'.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between items-center">
+                        <button onclick="addRow(null)" class="btn btn-secondary">
+                            + Add Employee Manually
+                        </button>
+                        <button onclick="showStep(3)" class="btn btn-primary" id="run-test-button" disabled>
+                            Run 401(a)(4) Test (Step 3)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: RESULTS AND TEST SUMMARY -->
+            <div id="step-3-results" class="card hidden">
+                <h2 class="text-xl font-bold mb-4">Step 3: Rate Group Test Summary</h2>
+                
+                <!-- Test Summary -->
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div id="overallTestSummaryBox" class="result-box result-info">
+                        <p class="font-bold text-lg">Overall Test Status: <span id="overallTestSummary">N/A</span></p>
+                        <p id="employeeCounts" class="mt-2 text-sm text-gray-700">Total HCEs: 0 | Total NHCEs: 0</p>
+                    </div>
+                </div>
+
+                <!-- Rate Group Test Table -->
+                <h3 class="text-lg font-semibold mt-6 mb-3">Rate Group Test Details (Ratio Percentage Test)</h3>
+                <div class="overflow-x-auto border rounded-lg">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rate Group Defined By HCE</th>
+                                <th>HCE Allocation Rate (Floor %)</th>
+                                <th>HCEs Benefiting / Total HCEs</th>
+                                <th>NHCEs Benefiting / Total NHCEs</th>
+                                <th>Ratio Percentage (%)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rateGroupResultBody">
+                            <tr><td colspan="6" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button onclick="exportDataToCSV()" class="btn btn-secondary">
+                        Export Data Grid to CSV
+                    </button>
+                    <button id="export-button" onclick="exportResultsToPDF()" class="btn btn-primary">
+                        Export Results to PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="error-message text-center mt-6"></div>
+        
+        <!-- PDF Loading Overlay -->
+        <div id="pdf-loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2);">
+                <div class="spinner" style="border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s ease infinite; margin: 0 auto 15px;"></div>
+                <p style="font-weight: bold; color: #333;">Generating PDF Report...</p>
+                <p style="font-size: 0.9em; color: #666;">This may take a moment for large reports.</p>
+            </div>
+        </div>
+        <style>
+             @keyframes spin {
+                 to { transform: rotate(360deg); }
+             }
+             .spinner {
+                 border-left-color: var(--primary) !important;
+             }
+        </style>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let systemData = [];      // Final, mapped, and cleaned Employee data (HCEs + NHCEs)
+        let rawCsvData = [];      // Raw data from the last uploaded CSV
+        let csvHeaders = [];      // Headers from the last uploaded CSV
+        let currentStep = 1;
+        let currentFilter = '';
+        let currentSort = { column: 'rate', direction: 'desc' }; // Default sort by rate, descending
+
+        // Fallback limits and rules for plan configuration
+        let CURRENT_PLAN_RULES = null;
+        const FALLBACK_LIMITS_KEYS = {
+            hce_comp_test: 155000, 
+        };
+
+        // Required system fields for the calculator
+        const REQUIRED_FIELDS = [
+            { id: 'name', label: 'Employee Name', type: 'text', required: true, internalKey: 'name' },
+            { id: 'compensation', label: 'Compensation ($)', type: 'number', required: true, internalKey: 'compensation' },
+            { id: 'contribution', label: 'Total Allocation ($)', type: 'number', required: true, internalKey: 'contribution' },
+            { id: 'isHce', label: 'HCE Status (Yes/No)', type: 'boolean', required: true, internalKey: 'isHce' }
+        ];
+
+        // --- HELPER FUNCTIONS ---
+
+        function formatCurrency(value) {
+           return '$' + Math.abs(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        function formatPercent(value) {
+           return value.toFixed(2) + '%';
+        }
+
+        function getLimit(key) {
+            let value = FALLBACK_LIMITS_KEYS[key];
+            if (CURRENT_PLAN_RULES && CURRENT_PLAN_RULES.LIMITS && CURRENT_PLAN_RULES.LIMITS[key] !== undefined) {
+                value = CURRENT_PLAN_RULES.LIMITS[key];
+            }
+            if (typeof value === 'number' && !isNaN(value)) {
+                return value;
+            }
+            return FALLBACK_LIMITS_KEYS[key];
+        }
+
+        function displayFallbackLimits() {
+            const hceCompTest = getLimit('hce_comp_test');
+            
+            document.getElementById('current-limits-display').innerHTML = `
+                <p><strong>Plan Configuration:</strong></p>
+                <ul>
+                    <li>HCE Compensation Threshold: <strong>${formatCurrency(hceCompTest)}</strong> (for internal reference only)</li>
+                    <li>Test Type: <strong>Rate Group Allocation Test (IRC 401(a)(4))</strong></li>
+                </ul>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+        }
+        
+        function updateStepIndicators() {
+            for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step-${i}-indicator`);
+                const stepElement = document.getElementById(`step-${i}-inputs`) || document.getElementById(`step-${i}-data-grid`) || document.getElementById(`step-${i}-results`);
+                
+                if (i === currentStep) {
+                    indicator.classList.add('active');
+                    if (stepElement) stepElement.classList.remove('hidden');
+                } else {
+                    indicator.classList.remove('active');
+                    if (stepElement) stepElement.classList.add('hidden');
+                }
+            }
+        }
+        
+        function showStep(step) {
+            currentStep = step;
+            updateStepIndicators();
+            showError(''); // Clear errors when changing steps
+            
+            if (step === 2) {
+                // Ensure the correct view is shown in Step 2
+                if (systemData.length === 0) {
+                    showDataImportControls();
+                } else {
+                    showDataGridReview();
+                    calculateAndRenderDataGrid();
+                }
+            } else if (step === 3) {
+                 calculateTests();
+            }
+        }
+        
+        // --- DATA GRID FILTERING AND SORTING ---
+
+        function calculateRates(data) {
+             return data.map(record => ({
+                 ...record,
+                 rate: record.compensation > 0 ? (record.contribution / record.compensation) * 100 : 0
+             }));
+        }
+
+        function applyFilterAndSort(data) {
+            // 1. Calculate rate temporarily for filtering/sorting
+            let processedData = calculateRates(data);
+
+            // 2. Filter
+            const filterText = currentFilter.toLowerCase().trim();
+            let filteredData = processedData;
+
+            if (filterText) {
+                filteredData = processedData.filter(record => 
+                    // Check name (string)
+                    record.name.toLowerCase().includes(filterText) ||
+                    // Check HCE status
+                    (record.isHce ? 'hce' : 'nhce').includes(filterText) ||
+                    // Check numeric fields (convert to string for searching)
+                    String(record.compensation).includes(filterText) ||
+                    String(record.contribution).includes(filterText) ||
+                    String(record.rate.toFixed(2)).includes(filterText)
+                );
+            }
+
+            // 3. Sort
+            const { column, direction } = currentSort;
+            
+            return filteredData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                let comparison = 0;
+                
+                if (column === 'isHce') {
+                    // Sort booleans (false before true, or true before false)
+                    aVal = aVal ? 1 : 0;
+                    bVal = bVal ? 1 : 0;
+                }
+                
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    comparison = aVal - bVal;
+                } else {
+                    comparison = String(aVal).localeCompare(String(bVal));
+                }
+
+                return direction === 'asc' ? comparison : -comparison;
+            });
+        }
+        
+        function filterDataGrid() {
+            currentFilter = document.getElementById('dataFilter').value;
+            calculateAndRenderDataGrid();
+        }
+
+        function sortDataGrid(column) {
+            if (currentSort.column === column) {
+                // Toggle direction
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                // New column, default to descending for numbers (rate, comp, cont), ascending for text/boolean
+                currentSort.column = column;
+                currentSort.direction = (['compensation', 'contribution', 'rate'].includes(column)) ? 'desc' : 'asc';
+            }
+            calculateAndRenderDataGrid();
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('#dataGrid th span').forEach(span => {
+                span.innerHTML = '';
+            });
+
+            const indicator = document.getElementById(`sort-${currentSort.column}`);
+            if (indicator) {
+                indicator.innerHTML = currentSort.direction === 'asc' ? ' &#x25B2;' : ' &#x25BC;';
+            }
+        }
+
+        // --- DATA GRID MANAGEMENT ---
+        
+        function calculateAndRenderDataGrid() {
+            const dataGridBody = document.getElementById('dataGridBody');
+            dataGridBody.innerHTML = '';
+            
+            const filteredAndSortedData = applyFilterAndSort(systemData);
+            const totalEmployees = filteredAndSortedData.length;
+
+            updateSortIndicators(); // Update sort arrows
+
+            if (totalEmployees === 0 && systemData.length === 0) {
+                 dataGridBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click \'Add Employee\'.</td></tr>';
+                 document.getElementById('run-test-button').disabled = true;
+                 return;
+            } else if (totalEmployees === 0 && systemData.length > 0) {
+                 dataGridBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No records matched the current filter criteria.</td></tr>';
+                 document.getElementById('run-test-button').disabled = false;
+                 return;
+            }
+            
+            filteredAndSortedData.forEach(record => {
+                // Find original index to link back to systemData
+                const originalIndex = systemData.findIndex(d => d.id === record.id); 
+                
+                const row = dataGridBody.insertRow();
+                row.id = `row-${originalIndex}`;
+                row.classList.add(record.isHce ? 'hce-true' : 'hce-false');
+                
+                // Name Input
+                let cell = row.insertCell();
+                cell.innerHTML = `<input type="text" value="${record.name}" onchange="updateRecord(${originalIndex}, 'name', this.value)" class="p-2 border rounded-md">`;
+                
+                // HCE Status Select
+                cell = row.insertCell();
+                cell.innerHTML = `
+                    <select onchange="updateRecord(${originalIndex}, 'isHce', this.value === 'Yes')" class="p-2 border rounded-md">
+                        <option value="Yes" ${record.isHce ? 'selected' : ''}>Yes</option>
+                        <option value="No" ${!record.isHce ? 'selected' : ''}>No</option>
+                    </select>
+                `;
+
+                // Compensation Input
+                cell = row.insertCell();
+                cell.innerHTML = `<input type="number" value="${record.compensation}" min="0" onchange="updateRecord(${originalIndex}, 'compensation', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
+                
+                // Contribution Input
+                cell = row.insertCell();
+                cell.innerHTML = `<input type="number" value="${record.contribution}" min="0" onchange="updateRecord(${originalIndex}, 'contribution', parseFloat(this.value) || 0)" class="p-2 border rounded-md">`;
+                
+                // Rate Display
+                cell = row.insertCell();
+                cell.className = 'font-bold';
+                cell.textContent = formatPercent(record.rate);
+
+                // Action Button
+                cell = row.insertCell();
+                cell.innerHTML = `<button onclick="deleteRow(${originalIndex})" class="btn btn-danger py-1 px-3">Delete</button>`;
+            });
+            
+            document.getElementById('run-test-button').disabled = systemData.length === 0;
+            showDataGridReview();
+        }
+
+        function addRow(record = null) {
+            const newRecord = record || {
+                id: crypto.randomUUID(),
+                name: `Employee ${systemData.length + 1}`,
+                compensation: 50000,
+                contribution: 2500,
+                isHce: false
+            };
+            systemData.push(newRecord);
+            calculateAndRenderDataGrid();
+        }
+
+        function updateRecord(index, field, value) {
+            if (systemData[index]) {
+                 systemData[index][field] = value;
+            }
+            calculateAndRenderDataGrid();
+        }
+
+        function deleteRow(index) {
+            systemData.splice(index, 1);
+            calculateAndRenderDataGrid();
+        }
+
+        // --- CSV HANDLING & MAPPING ---
+
+        function showDataImportControls() {
+            document.getElementById('data-import-controls').classList.remove('hidden');
+            document.getElementById('column-mapping-container').classList.add('hidden');
+            document.getElementById('data-grid-view').classList.remove('hidden');
+        }
+        
+        function showColumnMapping() {
+             document.getElementById('data-import-controls').classList.add('hidden');
+             document.getElementById('column-mapping-container').classList.remove('hidden');
+             document.getElementById('data-grid-view').classList.add('hidden');
+             renderColumnMappingDropdowns();
+        }
+        
+        function hideColumnMapping() {
+             rawCsvData = [];
+             csvHeaders = [];
+             showDataImportControls();
+             document.getElementById('csvFileInput').value = ''; // Clear file input
+        }
+        
+        function showDataGridReview() {
+             document.getElementById('data-import-controls').classList.remove('hidden');
+             document.getElementById('column-mapping-container').classList.add('hidden');
+             document.getElementById('data-grid-view').classList.remove('hidden');
+        }
+
+        function renderColumnMappingDropdowns() {
+            const container = document.getElementById('mapping-dropdowns');
+            container.innerHTML = '';
+            
+            REQUIRED_FIELDS.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'input-group';
+                div.innerHTML = `
+                    <label for="map-${field.id}" class="text-sm font-medium">${field.label} <span class="text-red-500">*</span></label>
+                    <select id="map-${field.id}" class="p-2 border rounded-md map-select">
+                        <option value="">-- SELECT COLUMN --</option>
+                        ${csvHeaders.map(header => 
+                            `<option value="${header}" ${header.toLowerCase().includes(field.id) || header.toLowerCase().includes(field.label.split(' ')[0].toLowerCase()) ? 'selected' : ''}>${header}</option>`
+                        ).join('')}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function processCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select a CSV file to upload.');
+                return;
+            }
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        showError('CSV parsing error. Please check the file format.');
+                        console.error('CSV Errors:', results.errors);
+                        return;
+                    }
+                    
+                    if (results.data.length === 0) {
+                         showError('The uploaded CSV file contains no valid data rows.');
+                         return;
+                    }
+
+                    rawCsvData = results.data;
+                    csvHeaders = results.meta.fields;
+                    showError('');
+                    showColumnMapping();
+                },
+                error: function(error) {
+                    showError('An unknown error occurred during CSV processing.');
+                    console.error('Papa Parse Error:', error);
+                }
+            });
+        }
+        
+        function finalizeDataImport() {
+            const mapping = {};
+            let isMappingValid = true;
+            let missingFields = [];
+            
+            // 1. Gather Mapping
+            REQUIRED_FIELDS.forEach(field => {
+                const selectElement = document.getElementById(`map-${field.id}`);
+                mapping[field.id] = selectElement.value;
+                
+                if (!mapping[field.id]) {
+                    isMappingValid = false;
+                    missingFields.push(field.label);
+                    selectElement.classList.add('border-red-500');
+                } else {
+                    selectElement.classList.remove('border-red-500');
+                }
+            });
+
+            if (!isMappingValid) {
+                showError(`Missing required column mappings: ${missingFields.join(', ')}.`);
+                return;
+            }
+            
+            // 2. Process Raw Data into SystemData
+            const newData = rawCsvData.map((d, index) => {
+                let isHceValue = String(d[mapping.isHce]).toLowerCase();
+                
+                const newRecord = {
+                    id: crypto.randomUUID(),
+                    name: String(d[mapping.name] || `Employee ${index + 1}`),
+                    compensation: parseFloat(d[mapping.compensation] || 0),
+                    contribution: parseFloat(d[mapping.contribution] || 0),
+                    isHce: isHceValue === 'yes' || isHceValue === 'true' || isHceValue === '1'
+                };
+                
+                // Filter out records where essential data (like compensation) is missing or zero after parsing
+                if (newRecord.compensation === 0 || isNaN(newRecord.compensation)) {
+                    return null; // Invalid record
+                }
+                return newRecord;
+            }).filter(d => d !== null);
+
+            if (newData.length === 0) {
+                 showError('After mapping, no valid employee data records were found (Compensation must be > 0).');
+                 return;
+            }
+
+            systemData = newData;
+            rawCsvData = [];
+            csvHeaders = [];
+            showError(`Successfully imported and mapped ${systemData.length} employee records.`);
+            
+            // 3. Render Data Grid and transition view
+            currentFilter = ''; // Reset filter after import
+            document.getElementById('dataFilter').value = '';
+            calculateAndRenderDataGrid();
+        }
+        
+        // --- 401(a)(4) TEST LOGIC ---
+
+        function calculateTests() {
+            showError('');
+            if (systemData.length === 0) {
+                showError('Please import or enter employee data before running the test.');
+                return;
+            }
+
+            const thresholdPct = parseFloat(document.getElementById('ratioThreshold').value) / 100;
+
+            const allHce = systemData.filter(e => e.isHce);
+            const allNhce = systemData.filter(e => !e.isHce);
+            
+            const totalHceCount = allHce.length;
+            const totalNhceCount = allNhce.length;
+
+            if (totalHceCount === 0 || totalNhceCount === 0) {
+                showError('The plan must have both HCEs and NHCEs to run the Ratio Percentage Test.');
+                return;
+            }
+
+            // 1. Calculate Allocation Rate for all employees
+            const allEmployeesWithRates = calculateRates(systemData);
+
+            // 2. Identify and Sort unique HCE rates
+            const hceRates = allHce.map(hce => (hce.contribution / hce.compensation) * 100);
+            const uniqueHceRates = [...new Set(hceRates)].sort((a, b) => b - a);
+            
+            let overallPass = true;
+            let resultTableHtml = '';
+
+            // 3. Iterate through each Rate Group defined by a unique HCE rate
+            for (const rateFloor of uniqueHceRates) {
+                // HCEs Benefiting: All HCEs with Rate >= rateFloor
+                const hcesBenefiting = allEmployeesWithRates.filter(e => e.isHce && e.rate >= rateFloor);
+                const hcesBenefitingCount = hcesBenefiting.length;
+
+                // NHCEs Benefiting: All NHCEs with Rate >= rateFloor
+                const nhcesBenefiting = allEmployeesWithRates.filter(e => !e.isHce && e.rate >= rateFloor);
+                const nhcesBenefitingCount = nhcesBenefiting.length;
+
+                // Calculate the Ratio Percentage (RP)
+                let rp = 0;
+                if (totalHceCount > 0) {
+                    const nhceRatio = totalNhceCount > 0 ? (nhcesBenefitingCount / totalNhceCount) : 0;
+                    const hceRatio = hcesBenefitingCount / totalHceCount;
+                    
+                    if (hceRatio > 0) {
+                         rp = (nhceRatio / hceRatio) * 100;
+                    }
+                }
+
+                const passes = rp >= (thresholdPct * 100);
+                if (!passes) {
+                    overallPass = false;
+                }
+
+                const statusClass = passes ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+                const statusText = passes ? 'PASS' : 'FAIL';
+                const rowClass = !passes ? 'bg-red-50' : '';
+                
+                const groupDefiningHce = hcesBenefiting[0]?.name || 'N/A'; // Use the highest HCE for display
+
+                resultTableHtml += `
+                    <tr class="${rowClass}">
+                        <td>${groupDefiningHce} Rate Group (Rate $\geq$ ${formatPercent(rateFloor)})</td>
+                        <td>${formatPercent(rateFloor)}</td>
+                        <td>${hcesBenefitingCount} / ${totalHceCount}</td>
+                        <td>${nhcesBenefitingCount} / ${totalNhceCount}</td>
+                        <td class="font-bold">${rp.toFixed(2)}%</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>
+                `;
+            }
+
+            // Update UI Summary
+            const overallSummaryBox = document.getElementById('overallTestSummaryBox');
+            const overallSummaryText = document.getElementById('overallTestSummary');
+            const employeeCounts = document.getElementById('employeeCounts');
+            
+            overallSummaryText.textContent = overallPass ? 'Passed - All Rate Groups Satisfy Ratio Test' : 'FAILED - One or More Rate Groups Failed';
+            overallSummaryBox.className = overallPass ? 'result-box result-pass' : 'result-box result-fail';
+            employeeCounts.textContent = `Total HCEs: ${totalHceCount} | Total NHCEs: ${totalNhceCount}`;
+
+            document.getElementById('rateGroupResultBody').innerHTML = resultTableHtml;
+        }
+
+        // --- DATA EXPORT ---
+        
+        function showProgress(message, isVisible) {
+            const overlay = document.getElementById('pdf-loading-overlay');
+            if (isVisible) {
+                overlay.querySelector('p:first-of-type').textContent = message;
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        async function exportResultsToPDF() {
+            showProgress('Generating PDF Report...', true);
+
+            const title = document.title;
+            const elementSelectors = ['#current-limits-display', '#step-1-inputs', '#step-3-results']; // Skip the massive data grid
+            
+            await new Promise(resolve => setTimeout(resolve, 50)); // Allow DOM to update
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            let y = 10;
+            
+            doc.setFontSize(18);
+            doc.text(title, 10, y);
+            y += 5;
+            
+            for (const selector of elementSelectors) {
+                const element = document.querySelector(selector);
+                if (element && element.style.display !== 'none' && !element.classList.contains('hidden')) {
+                    try {
+                        const canvas = await html2canvas(element, { scale: 1.0 }); 
+                        const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                        
+                        const imgProps = doc.getImageProperties(imgData);
+                        const pdfWidth = doc.internal.pageSize.getWidth() - 20;
+                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                        if (y + pdfHeight > doc.internal.pageSize.getHeight() - 10) {
+                            doc.addPage();
+                            y = 10;
+                        }
+                        
+                        doc.addImage(imgData, 'JPEG', 10, y, pdfWidth, pdfHeight);
+                        y += pdfHeight + 5; 
+                    } catch (error) {
+                        console.error(`Error capturing element ${selector}:`, error);
+                    }
+                }
+            }
+            
+            doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+            showProgress('', false);
+        }
+
+        function exportDataToCSV() {
+            if (systemData.length === 0) {
+                showError("No data to export.");
+                return;
+            }
+
+            const processedData = calculateRates(systemData);
+
+            const headerRow = REQUIRED_FIELDS.map(f => f.label).concat(['Calculated Allocation Rate (%)']);
+            const dataRows = processedData.map(record => 
+                REQUIRED_FIELDS.map(f => {
+                    if (f.id === 'isHce') return record[f.id] ? 'Yes' : 'No';
+                    return record[f.id];
+                }).concat([record.rate.toFixed(2)])
+            );
+            
+            const csv = Papa.unparse([headerRow, ...dataRows]);
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "401a4_rate_group_export.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- CORE RESET FUNCTION (START OVER) ---
+        
+        function startOver() {
+            // 1. Reset Global Data
+            systemData = [];
+            rawCsvData = [];
+            csvHeaders = [];
+            currentFilter = '';
+            currentSort = { column: 'rate', direction: 'desc' };
+            CURRENT_PLAN_RULES = null;
+
+            // 2. Reset Step to 1 and UI Inputs
+            currentStep = 1;
+            document.getElementById('ratioThreshold').value = '70.0';
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('dataFilter').value = '';
+            
+            // Clear the data grid inputs and state
+            document.getElementById('dataGridBody').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No employee data loaded. Please import a CSV or click \'Add Employee\'.</td></tr>';
+            
+            // Clear correction/result tables
+            document.getElementById('rateGroupResultBody').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Run test after importing data.</td></tr>';
+
+            // Clear summary results and messages
+            document.getElementById('overallTestSummary').textContent = 'N/A';
+            document.getElementById('overallTestSummaryBox').className = 'result-box result-info';
+            document.getElementById('employeeCounts').textContent = 'Total HCEs: 0 | Total NHCEs: 0';
+
+            showError('');
+            
+            // Reset all step visibility
+            updateStepIndicators();
+            showDataImportControls(); 
+
+            // Re-fetch configuration (or display fallbacks)
+            requestConfigReload(); 
+        }
+        
+        // --- INITIALIZATION AND CONFIG ---
+        
+        // Mock function for config reload 
+        function requestConfigReload() {
+            console.log("Requesting plan configuration reload...");
+            setTimeout(() => {
+                const mockPayload = {
+                    LIMITS: { hce_comp_test: 155000 },
+                    RULES: {}
+                };
+                CURRENT_PLAN_RULES = mockPayload;
+                displayFallbackLimits();
+            }, 50);
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initial setup
+            requestConfigReload(); 
+            updateStepIndicators(); // Initialize step display
+            document.getElementById('run-test-button').addEventListener('click', () => showStep(3));
+            calculateAndRenderDataGrid(); // Initial render of an empty grid view
+        });
+    </script>
 </body>
 </html>

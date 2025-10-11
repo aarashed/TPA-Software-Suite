@@ -1,115 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>401(k) Loan/Withdrawal Estimator</title>
-   <!-- Assume style.css and iframe_content_styles.css are present -->
-   <link rel="stylesheet" href="style.css">
-   <link rel="stylesheet" href="../iframe_content_styles.css"> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401(k) Loan/Withdrawal Estimator</title>
+    <!-- Using Tailwind CSS for clean, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define custom colors/variables for a professional look */
+        :root {
+            --color-primary: #1e40af; /* Blue-900 */
+            --color-secondary: #f97316; /* Orange-500 */
+            --color-success: #059669; /* Emerald-600 */
+            --color-danger: #dc2626; /* Red-600 */
+            --color-warning: #fbbf24; /* Amber-400 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f9; /* Lighter background */
+            color: #1f2937;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+        }
+
+        h1 {
+            font-size: 2rem; 
+            font-weight: 800;
+            color: var(--color-primary);
+            margin-bottom: 5px;
+            border-bottom: 2px solid #eff6ff;
+            padding-bottom: 10px;
+        }
+
+        .description {
+            color: #6b7280;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .card {
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.15);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: #eef2ff; /* Light Blue-50 */
+            color: var(--color-primary);
+            border: 1px solid #bfdbfe; /* Blue-200 */
+        }
+
+        .btn-secondary:hover {
+            background-color: #dbeafe; /* Blue-100 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Results Styling */
+        .result-section {
+            padding-top: 25px;
+            margin-top: 15px;
+            display: none; /* Hidden by default, shown by JS */
+        }
+        
+        .metric-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Better for label and value alignment */
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .result-value {
+            font-weight: 700;
+            text-align: right;
+            color: #1f2937;
+        }
+        .result-value-highlight {
+            font-size: 1.4rem;
+            color: var(--color-success);
+        }
+
+        .note-text {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            border-left: 3px solid #e5e7eb;
+        }
+
+        .error-message {
+            color: white;
+            background-color: var(--color-danger);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 600;
+            box-shadow: 0 5px 10px rgba(220, 38, 38, 0.2);
+        }
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Dynamic Limits Display Styling */
+        .result-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .result-info {
+            background-color: #eff6ff; 
+            border: 1px solid #bfdbfe; 
+            color: #1e40af;
+        }
+        .result-success {
+            background-color: #ecfdf5; /* Green-50 */
+            border: 1px solid #a7f3d0; /* Green-200 */
+            color: var(--color-success);
+        }
+        .result-warning {
+             background-color: #fffbeb; 
+             border: 1px solid #fcd34d; 
+             color: #92400e;
+        }
+
+        /* --- Amortization Table Specific Styles --- */
+        .table-scroll-container {
+            max-height: 450px; 
+            overflow-y: auto;  
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .amortization-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em; /* Slightly smaller text for data density */
+            background-color: white;
+            min-width: 600px; /* Ensure table is usable on smaller screens by enforcing scroll */
+        }
+
+        .amortization-table th, .amortization-table td {
+            padding: 12px 10px;
+            text-align: right;
+            border-bottom: 1px solid #f3f4f6; /* Very light separator */
+        }
+
+        .amortization-table th {
+            background-color: #f7f7f9;
+            font-weight: 700;
+            color: #4b5563;
+            position: sticky; 
+            top: 0;
+            z-index: 10;
+        }
+        .amortization-table th:first-child { text-align: left; }
+
+        .amortization-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        .amortization-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+
+        .amortization-table td:first-child {
+            text-align: left; 
+        }
+        
+        /* Responsive Button Layout */
+        .action-buttons-container {
+             display: grid;
+             grid-template-columns: repeat(3, 1fr); /* Default 3 columns */
+             gap: 15px; 
+             align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons-container {
+                grid-template-columns: 1fr; /* Stack on smaller screens */
+            }
+        }
+    </style>
 </head>
 <body>
     
    <div class="calculator-container">
        
-       <h1>401(k) Loan/Withdrawal Estimator</h1>
-       <p class="description">Estimate the maximum loan eligibility, model a loan repayment schedule, or estimate the penalty for a withdrawal.</p>
+       <h1>401(k) Loan & Withdrawal Estimator</h1>
+       <p class="description">Estimate maximum loan eligibility, model a repayment schedule, or estimate the net impact of a non-qualified withdrawal.</p>
 
        <!-- Dynamic Limits Display -->
-       <div class="result-box result-info" id="current-limits-display" style="margin-bottom: 15px;">
+       <div class="result-box result-info" id="current-limits-display">
            <p>Loading IRS Limits...</p>
        </div>
        
        <!-- Reload Button -->
        <div style="text-align: right; margin-bottom: 15px;">
-           <button onclick="requestConfigReload()" class="btn btn-secondary btn-small" title="Reloads current IRS limits from the central dashboard.">
-               Reload Config
+           <button onclick="requestConfigReload()" class="btn-secondary btn text-sm py-2 px-3" title="Reloads current IRS limits from the central dashboard.">
+               &#x21bb; Reload Limits
            </button>
        </div>
 
        
        <div class="card input-card">
-           <h2>Loan/Withdrawal Details</h2>
+           <h2 class="text-xl font-bold mb-4 text-gray-700">Inputs</h2>
            
            <!-- VESTED BALANCE (Required for Max Loan Eligibility) -->
            <div class="input-group">
                <label for="vestedBalance">Vested Account Balance ($)</label>
-               <input type="number" id="vestedBalance" value="50000" min="0">
+               <input type="number" id="vestedBalance" value="100000" min="0">
            </div>
            
-           <!-- OUTSTANDING LOAN (Required for Max Loan Eligibility) -->
+           <!-- Prior Outstanding Loan Balance -->
            <div class="input-group">
-               <label for="outstandingLoan">Outstanding Loan Balance ($)</label>
-               <input type="number" id="outstandingLoan" value="0" min="0">
-           </div>
-           
-           <!-- EMPLOYEE AGE (Required for Withdrawal Penalty) -->
-           <div class="input-group">
-               <label for="age">Employee Age (Years)</label>
-               <input type="number" id="age" value="40" min="18" max="75">
-           </div>
-           
-           <!-- LOAN/WITHDRAWAL AMOUNT -->
-           <div class="input-group">
-               <label for="amount">Loan/Withdrawal Amount ($)</label>
-               <input type="number" id="amount" value="10000" min="1" required>
-           </div>
-           
-           <!-- YEARS VESTED (Used for plan-specific checks) -->
-           <div class="input-group">
-               <label for="yearsVested">Years Vested in Plan (Years)</label>
-               <input type="number" id="yearsVested" value="5" min="0" max="40">
-           </div>
-           
-           <!-- INTEREST RATE (Required for Repayment Calc) -->
-           <div class="input-group">
-               <label for="loanInterest">Assumed Loan Interest Rate (%)</label>
-               <input type="number" id="loanInterest" value="6.0" step="0.1" min="0" max="20">
+               <label for="priorLoanBalance">Prior Outstanding Loan Balance ($)</label>
+               <input type="number" id="priorLoanBalance" value="0" min="0">
            </div>
 
-           <!-- LOAN TERM (Required for Repayment Calc) -->
+           <hr class="my-6 border-gray-200">
+
+           <!-- LOAN REPAYMENT DETAILS -->
+           <h3 class="text-lg font-bold mb-3 text-gray-700">Loan Repayment Inputs</h3>
            <div class="input-group">
-               <label for="loanTerm">Loan Term (Years)</label>
+               <label for="loanAmount">Desired Loan Amount ($)</label>
+               <input type="number" id="loanAmount" value="10000" min="1">
+           </div>
+           <div class="input-group">
+               <label for="loanTerm">Loan Term (Years, typically 1 to 5)</label>
                <input type="number" id="loanTerm" value="5" min="1" max="15">
            </div>
+           <div class="input-group">
+               <label for="loanInterestRate">Annual Interest Rate (%)</label>
+               <input type="number" id="loanInterestRate" value="6.5" min="0.01" step="0.1">
+           </div>
 
-           <!-- Calculation Buttons: Run All and Individual -->
-           <div class="button-group" style="margin-top: 25px;">
-               <!-- Primary Run All Button (THIS IS THE BINDING: onclick="runAllEstimators()") -->
-               <button onclick="runAllEstimators()" class="btn-accent" style="width: 100%; max-width: 300px; padding: 12px; margin: 0 auto 15px auto; display: block;">
-                   Run All Estimators
-               </button>
-               
-               <div style="text-align: center; margin-bottom: 15px;"><small>— OR CALCULATE INDIVIDUALLY —</small></div>
-
-               <!-- Secondary Individual Buttons -->
-               <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                   <button onclick="calculateMaxLoan()" class="btn-primary" style="flex-grow: 1; max-width: 200px;">Max Loan Eligibility</button>
-                   <button onclick="calculateLoan()" class="btn-secondary" style="flex-grow: 1; max-width: 200px;">Loan Repayment</button>
-                   <button onclick="calculateWithdrawal()" class="btn-primary" style="flex-grow: 1; max-width: 200px; background-color: #5d5d5d; color: white;">Withdrawal Penalty</button>
+           <hr class="my-6 border-gray-200">
+           
+           <!-- WITHDRAWAL PENALTY DETAILS -->
+           <h3 class="text-lg font-bold mb-3 text-gray-700">Withdrawal Penalty Inputs</h3>
+           <div class="input-group">
+               <label for="withdrawalAmount">Desired Withdrawal Amount ($)</label>
+               <input type="number" id="withdrawalAmount" value="5000" min="1">
+           </div>
+           <div class="input-group">
+               <label for="ageAtWithdrawal">Your Current Age (Years)</label>
+               <input type="number" id="ageAtWithdrawal" value="45" min="18">
+           </div>
+           <div class="input-group">
+               <label for="exemptionReason">Reason for Withdrawal (for 10% penalty check)</label>
+               <select id="exemptionReason" class="block w-full">
+                   <option value="none">None / Financial Hardship</option>
+                   <option value="age_59_half">Age 59.5 or Older (Exempt)</option>
+                   <option value="disability">Permanent Disability (Exempt)</option>
+                   <option value="medical_expenses">Qualified Medical Expenses (Exempt)</option>
+               </select>
+           </div>
+           
+           <!-- ACTION BUTTONS -->
+           <div class="mt-8">
+               <h3 class="text-lg font-bold mb-4 text-center text-gray-700">Run Estimators</h3>
+               <div class="action-buttons-container">
+                   <button onclick="calculateMaxLoan()" class="btn btn-secondary">Max Loan Eligibility</button>
+                   <button onclick="calculateLoan()" class="btn btn-primary">Loan Repayment Schedule</button>
+                   <button onclick="calculateWithdrawal()" class="btn btn-primary" style="background-color: var(--color-danger);">Withdrawal Penalty</button>
                </div>
            </div>
        </div>
 
        <div class="card result-card" id="results">
-           <h2>Estimated Results</h2>
+           <h2 class="text-xl font-bold mb-4 text-gray-700">Estimated Results</h2>
            
-           <!-- Result sections for each calculation -->
+           <!-- 1. Max Loan Eligibility Result Section -->
            <div id="maxLoanResults" class="result-section">
-                <p>Enter details and click **Run any Estimators** to see results.</p>
+                <p class="text-gray-500">Click an estimator button above to see results.</p>
            </div>
+           
+           <!-- 2. Loan Repayment Result Section -->
            <div id="loanResults" class="result-section">
-                <p>Enter details and click **Run any Estimators** to see results.</p>
+                <p class="text-gray-500">Click an estimator button above to see results.</p>
            </div>
+           
+           <!-- 3. Withdrawal Penalty Result Section -->
            <div id="withdrawalResults" class="result-section">
-                <p>Enter details and click **Run any Estimators** to see results.</p>
+                <p class="text-gray-500">Click an estimator button above to see results.</p>
            </div>
        </div>
 
        <div id="error-message" class="error-message"></div>
    </div>
 
-   <!-- This links the JavaScript where runAllEstimators() is defined -->
    <script src="loan_withdrawal.js"></script>
 </body>
 </html>
