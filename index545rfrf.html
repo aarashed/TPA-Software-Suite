@@ -6,21 +6,6 @@
    <title>TPA Software Suite - Central Dashboard</title>
    <link rel="icon" type="image/png" href="favicon.ico">
    <link rel="stylesheet" href="dashboard.css">
-<style>
-       /* Custom CSS for the Dashboard Logo */
-       .dashboard-logo-icon {
-           width: 40px; /* Standard logo size */
-           height: 40px;
-           color: #FFFFFF; /* A professional blue/teal for the main logo */
-           flex-shrink: 0;
-           margin-right: 10px;
-       }
-       .header-left .logo-container {
-           /* Ensure the logo and text align vertically */
-           display: flex;
-           align-items: center;
-       }
-   </style>
 </head>
 <body>
 
@@ -29,18 +14,9 @@
     <header class="header">
            <div class="header-left">
                <div class="logo-container">
-                  <!-- NEW TPA SOFTWARE SUITE LOGO (Shield + Stacked Assets) -->
-                   <a href="https://software-home.net/index.html" target="_blank" title="Software Home">
-                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="dashboard-logo-icon">
-                           <!-- Shield Outline (Compliance/Security) -->
-                           <path d="M12 2C17.52 2 22 5.6 22 10.06C22 13.9 19.33 17.5 14.5 21.5C13.67 22.18 12.33 22.18 11.5 21.5C6.67 17.5 4 13.9 4 10.06C4 5.6 8.48 2 12 2Z" fill="currentColor" opacity="0.1" stroke="currentColor" stroke-width="1.5"/>
-                           <!-- Stacked Bars (Growth/Administration/Assets) -->
-                           <rect x="7" y="10" width="2" height="6" rx="0.5" fill="currentColor" opacity="0.9"/>
-                           <rect x="11" y="8" width="2" height="8" rx="0.5" fill="currentColor" opacity="0.7"/>
-                           <rect x="15" y="6" width="2" height="10" rx="0.5" fill="currentColor" opacity="0.5"/>
-                       </svg>
+                   <a href="https://software-home.net/index.html" target="_blank">
+                       <img src="company_logo.png" alt="Software Home" class="company-logo">
                    </a>
-                   <!-- END NEW LOGO -->
                </div>
                <h1>TPA Compliance & Administration Dashboard</h1>
                
@@ -61,9 +37,8 @@
                     <button class="sidebar-toggle-btn" onclick="toggleSidebar()">«</button>
                 </h2>
 
-                <div class="search-container">
-                    <input type="text" id="menu-search-input" placeholder="Search tools..." class="search-input">
-                    <button id="clear-search-btn" title="Clear Search" class="clear-button">✖</button>
+                 <div class="search-container">
+                  <input type="text" id="menu-search-input" placeholder="Search modules..." onkeyup="filterModules()">
                 </div>
 
                 <div class="module-grid-sidebar">
@@ -77,7 +52,7 @@
                         <a href="ADP_ACP_NonDiscrimination_Test_and_Correction_Calculator/adp_acp_calculator.html" class="tool-link" onclick="loadTool(this); return false;" title="Calculates and corrects results for the Actual Deferral Percentage (ADP) and Actual Contribution Percentage (ACP) tests."> ADP/ACP NDT & Correction</a>
                         <a href="401(a)(4)_Rate_Group_Allocation_Tester/rate_group_tester.html" class="tool-link" onclick="loadTool(this); return false;" title="Analyzes highly compensated employees (HCEs) benefiting in rate groups for 401(a)(4) non-discrimination compliance."> 401(a)(4) Rate Group Tester</a>
                         <a href="Controlled_Affiliated_Service_Group_Tester/controlled_group_tester.html" class="tool-link" onclick="loadTool(this); return false;" title="Determines if multiple entities must be aggregated for coverage, testing, and limit purposes under 414(b), (c), (m), or (o)."> Controlled Group/ASG Tester</a>
-                        <a href="Automated_Top-Heavy_Minimum_Contribution/top_heavy_report.html" class="tool-link" onclick="loadTool(this); return false;" title="Generates the required report detailing employees and minimum contribution amounts for top-heavy plans."> Top-Heavy Minimum Report</a>
+                        <a href="Automated_Top-Heavy_Minimum_Contribution_Report/top_heavy_report.html" class="tool-link" onclick="loadTool(this); return false;" title="Generates the required report detailing employees and minimum contribution amounts for top-heavy plans."> Top-Heavy Minimum Report</a>
                     </div>
                 </div>
 
@@ -150,7 +125,7 @@
                     </h3>
                     <div class="tool-links-container">
                         <a href="plan_config_tool.html" class="tool-link" onclick="loadTool(this); return false;" title="Adjust core plan and statutory limits."> Plan Limit Configuration </a>
-                         <a href="Census Manager/census_manager.html" class="tool-link" onclick="loadTool(this); return false;" title="Import, map, and validate client census data for use in compliance modules."> Employee Census Data Manager </a>
+                        <a href="Census Manager/census_manager.html" class="tool-link" onclick="loadTool(this); return false;" title="Import, map, and validate client census data for use in compliance modules."> Employee Census Data Manager </a>
 
                     </div>
                 </div>
